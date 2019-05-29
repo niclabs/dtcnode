@@ -1,0 +1,15 @@
+name: Nodei
+public_key: PubK
+private_key: PrivK
+ip: 1.2.3.4
+router_port: 2031 # Router port
+sub_port: 3031 # Router port
+servers:
+  - ip: 1.2.3.4
+    public_key: PubK
+    key_share: asd
+    key_metainfo: asd
+  - ip: 5.6.7.8
+    public_key: PubK
+    key_share: asd
+    key_metainfo: asd

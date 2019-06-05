@@ -2,8 +2,12 @@ package main
 
 import (
 	"dtcnode/message"
+	"encoding/base64"
 	"fmt"
+	"github.com/niclabs/tcrsa"
 	"github.com/pebbe/zmq4"
+	"github.com/spf13/viper"
+	"log"
 	"net"
 	"os"
 	"sync"
@@ -38,6 +42,7 @@ func InitClient(config *Config) (*Client, error) {
 		config:  config,
 		servers: make(map[string]*Server, len(config.Servers)),
 	}
+
 	context, err := zmq4.NewContext()
 	if err != nil {
 		return nil, err
@@ -62,12 +67,36 @@ func InitClient(config *Config) (*Client, error) {
 	}
 
 	for _, serverConfig := range config.Servers {
+		var keyShare *tcrsa.KeyShare
+		var keyMeta *tcrsa.KeyMeta
+
+		if serverConfig.KeyShare != "" && serverConfig.KeyMetaInfo != "" {
+			keyShareByte, err := base64.StdEncoding.DecodeString(serverConfig.KeyShare)
+			if err != nil {
+				return nil, err
+			}
+			keyShare, err = message.DecodeKeyShare(keyShareByte)
+			if err != nil {
+				return nil, err
+			}
+			keyMetaByte, err := base64.StdEncoding.DecodeString(serverConfig.KeyMetaInfo)
+			if err != nil {
+				return nil, err
+			}
+			keyMeta, err = message.DecodeKeyMeta(keyMetaByte)
+			if err != nil {
+				return nil, err
+			}
+		}
+
 		serverIP := net.ParseIP(config.IP)
 		server := &Server{
 			pubKey: config.PublicKey,
 			ip:     &serverIP,
 			port:   config.Port,
 			client: node,
+			keyShare: keyShare,
+			keyMeta: keyMeta,
 		}
 
 		out, err := context.NewSocket(zmq4.DEALER)
@@ -99,13 +128,33 @@ func (client *Client) GetConnString() string {
 	return fmt.Sprintf("%s://%s:%d", TchsmProtocol, client.ip, client.port)
 }
 
-func (client *Client) SaveConfig() string {
+func (client *Client) SaveConfigKeys() error {
 	client.configMutex.Lock()
 	defer client.configMutex.Unlock()
-
+	for _, server := range client.servers {
+		keyShareBytes, err := message.EncodeKeyShare(server.keyShare)
+		if err != nil {
+			return fmt.Errorf("error encoding keys: %s", err)
+		}
+		keyMetaBytes, err := message.EncodeKeyMeta(server.keyMeta)
+		if err != nil {
+			return fmt.Errorf("error encoding keys: %s", err)
+		}
+		keyShareB64 := base64.StdEncoding.EncodeToString(keyShareBytes)
+		keyMetaB64 := base64.StdEncoding.EncodeToString(keyMetaBytes)
+		serverConfig := client.config.GetServerByID(server.GetID())
+		if serverConfig == nil {
+			return fmt.Errorf("error encoding keys: server config not found")
+		}
+		serverConfig.KeyShare = keyShareB64
+		serverConfig.KeyMetaInfo = keyMetaB64
+	}
+	return viper.SafeWriteConfig()
 }
 
 func (client *Client) Listen() {
+	log.Printf("listening to %s...", client.GetConnString())
+
 	for _, server := range client.servers {
 		go server.Listen()
 	}

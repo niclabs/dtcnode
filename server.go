@@ -10,7 +10,6 @@ import (
 	"github.com/pebbe/zmq4"
 	"log"
 	"net"
-	"os"
 )
 
 type Server struct {
@@ -24,7 +23,6 @@ type Server struct {
 	channel  chan *message.Message
 }
 
-
 func (server *Server) GetID() string {
 	return server.pubKey
 }
@@ -33,8 +31,7 @@ func (server *Server) GetConnString() string {
 	return fmt.Sprintf("%s://%s:%d", TchsmProtocol, server.ip, server.port)
 }
 
-
-func (server *Server) Listen() string {
+func (server *Server) Listen() {
 	for msg := range server.channel {
 		resp := msg.CopyWithoutData(message.Ok)
 		switch msg.Type {
@@ -69,7 +66,7 @@ func (server *Server) Listen() string {
 				break
 			}
 			doc := msg.Data[0]
-			sigShare, err := server.keyShare.Sign(doc, crypto.SHA256, &server.keyMeta)
+			sigShare, err := server.keyShare.Sign(doc, crypto.SHA256, server.keyMeta)
 			if err != nil {
 				resp.Error = message.DocSignError
 				break
@@ -95,6 +92,6 @@ func (server *Server) Listen() string {
 func (server *Server) SaveKey(keyShare *tcrsa.KeyShare, keyMeta *tcrsa.KeyMeta) {
 	server.keyShare = keyShare
 	server.keyMeta = keyMeta
-	server.client.SaveConfig()
+	server.client.SaveConfigKeys()
 	// Encode keyshare and keymeta and save them in client config
 }

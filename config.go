@@ -1,12 +1,20 @@
 package main
 
-
 type Config struct {
 	PublicKey  string
 	PrivateKey string
 	IP         string
 	Port       uint16
-	Servers    []ServerConfig
+	Servers    []*ServerConfig
+}
+
+func (config *Config) GetServerByID(id string) *ServerConfig {
+	for _, serverConfig := range config.Servers {
+		if serverConfig.PublicKey == id {
+			return serverConfig
+		}
+	}
+	return nil
 }
 
 func (config *Config) GetServerIPs() []string {
@@ -24,7 +32,6 @@ func (config *Config) GetServerPubKeys() []string {
 	}
 	return pubkeys
 }
-
 
 type ServerConfig struct {
 	PublicKey   string

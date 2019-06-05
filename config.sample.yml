@@ -1,0 +1,16 @@
+name: Nodei
+public_key: PubK
+private_key: PrivK
+ip: 127.0.0.1
+port: 2031
+servers:
+  - ip: 127.0.0.1
+    port: 3030
+    public_key: PubK
+    key_share:
+    key_metainfo:
+  - ip: 127.0.0.1
+    port: 2030
+    public_key: PubK
+    key_share:
+    key_metainfo:

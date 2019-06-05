@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"github.com/pebbe/zmq4"
 	"github.com/spf13/viper"
 )
 
@@ -16,25 +15,15 @@ func init() {
 
 
 func main() {
-	// Start node
 	var config Config
 	err := viper.Unmarshal(&config)
 	if err != nil {
 		panic(err)
 	}
 
-	for i, server := range config.Servers {
-		serverID := fmt.Sprintf("server_%d", i)
-		zmq4.AuthAllow(serverID, server.IP)
-		zmq4.AuthCurveAdd(serverID, server.PublicKey)
-	}
-
-	n, err := NewNode(config.PublicKey, config.PrivateKey, config.IP, config.RouterPort, config.SubPort)
+	n, err := InitClient(&config)
 	if err != nil {
 		panic(err)
 	}
-
-	for {
-		n.Listen()
-	}
+	n.Listen()
 }

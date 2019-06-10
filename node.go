@@ -67,27 +67,6 @@ func InitClient(config *Config) (*Client, error) {
 	}
 
 	for _, serverConfig := range config.Servers {
-		var keyShare *tcrsa.KeyShare
-		var keyMeta *tcrsa.KeyMeta
-
-		if serverConfig.KeyShare != "" && serverConfig.KeyMetaInfo != "" {
-			keyShareByte, err := base64.StdEncoding.DecodeString(serverConfig.KeyShare)
-			if err != nil {
-				return nil, err
-			}
-			keyShare, err = message.DecodeKeyShare(keyShareByte)
-			if err != nil {
-				return nil, err
-			}
-			keyMetaByte, err := base64.StdEncoding.DecodeString(serverConfig.KeyMetaInfo)
-			if err != nil {
-				return nil, err
-			}
-			keyMeta, err = message.DecodeKeyMeta(keyMetaByte)
-			if err != nil {
-				return nil, err
-			}
-		}
 
 		serverIP := net.ParseIP(config.IP)
 		server := &Server{
@@ -95,9 +74,37 @@ func InitClient(config *Config) (*Client, error) {
 			ip:     &serverIP,
 			port:   config.Port,
 			client: node,
-			keyShare: keyShare,
-			keyMeta: keyMeta,
+			keys: make(map[string]*Key, len(serverConfig.Keys)),
 		}
+
+		for _, key := range serverConfig.Keys {
+			var keyShare *tcrsa.KeyShare
+			var keyMeta *tcrsa.KeyMeta
+			if key.KeyShare != "" && key.KeyMetaInfo != "" {
+				keyShareByte, err := base64.StdEncoding.DecodeString(key.KeyShare)
+				if err != nil {
+					return nil, err
+				}
+				keyShare, err = message.DecodeKeyShare(keyShareByte)
+				if err != nil {
+					return nil, err
+				}
+				keyMetaByte, err := base64.StdEncoding.DecodeString(key.KeyMetaInfo)
+				if err != nil {
+					return nil, err
+				}
+				keyMeta, err = message.DecodeKeyMeta(keyMetaByte)
+				if err != nil {
+					return nil, err
+				}
+			}
+			server.keys[key.ID] = &Key{
+				ID:    key.ID,
+				Meta:  keyMeta,
+				Share: keyShare,
+			}
+		}
+
 
 		out, err := context.NewSocket(zmq4.DEALER)
 		if err != nil {
@@ -132,22 +139,30 @@ func (client *Client) SaveConfigKeys() error {
 	client.configMutex.Lock()
 	defer client.configMutex.Unlock()
 	for _, server := range client.servers {
-		keyShareBytes, err := message.EncodeKeyShare(server.keyShare)
-		if err != nil {
-			return fmt.Errorf("error encoding keys: %s", err)
-		}
-		keyMetaBytes, err := message.EncodeKeyMeta(server.keyMeta)
-		if err != nil {
-			return fmt.Errorf("error encoding keys: %s", err)
-		}
-		keyShareB64 := base64.StdEncoding.EncodeToString(keyShareBytes)
-		keyMetaB64 := base64.StdEncoding.EncodeToString(keyMetaBytes)
 		serverConfig := client.config.GetServerByID(server.GetID())
 		if serverConfig == nil {
 			return fmt.Errorf("error encoding keys: server config not found")
 		}
-		serverConfig.KeyShare = keyShareB64
-		serverConfig.KeyMetaInfo = keyMetaB64
+		for _, key := range server.keys {
+			keyShareBytes, err := message.EncodeKeyShare(key.Share)
+			if err != nil {
+				return fmt.Errorf("error encoding keys: %s", err)
+			}
+			keyMetaBytes, err := message.EncodeKeyMeta(key.Meta)
+			if err != nil {
+				return fmt.Errorf("error encoding keys: %s", err)
+			}
+			keyShareB64 := base64.StdEncoding.EncodeToString(keyShareBytes)
+			keyMetaB64 := base64.StdEncoding.EncodeToString(keyMetaBytes)
+			keyConfig := serverConfig.GetKeyByID(key.ID)
+			if keyConfig == nil {
+				serverConfig.Keys = append(serverConfig.Keys, &KeyConfig{
+					ID: key.ID,
+					KeyMetaInfo: keyMetaB64,
+					KeyShare: keyShareB64,
+				})
+			}
+		}
 	}
 	return viper.SafeWriteConfig()
 }

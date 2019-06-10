@@ -5,11 +5,15 @@ port: 2031
 servers:
   - ip: 127.0.0.1
     port: 3030
-    public_key: PubK
-    key_share:
-    key_metainfo:
+    keys:
+    - id: bla
+      public_key: PubK
+      key_share:
+      key_metainfo:
   - ip: 127.0.0.1
     port: 2030
-    public_key: PubK
-    key_share:
-    key_metainfo:
+    keys:
+      id:
+      public_key: PubK
+      key_share:
+      key_metainfo:

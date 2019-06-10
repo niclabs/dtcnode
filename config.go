@@ -34,9 +34,25 @@ func (config *Config) GetServerPubKeys() []string {
 }
 
 type ServerConfig struct {
-	PublicKey   string
-	IP          string
-	Port        uint16
+	PublicKey string
+	IP        string
+	Port      uint16
+	Keys      []*KeyConfig
+}
+
+func (serverConfig *ServerConfig) GetKeyByID(id string) *KeyConfig {
+	for _, key := range serverConfig.Keys {
+		if key.ID == id {
+			return key
+		}
+	}
+	return nil
+}
+
+type KeyConfig struct {
+	ID          string
 	KeyShare    string
 	KeyMetaInfo string
 }
+
+

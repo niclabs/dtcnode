@@ -1,10 +1,8 @@
 package main
 
 import (
-	"bytes"
 	"crypto"
 	"dtcnode/message"
-	"encoding/gob"
 	"fmt"
 	"github.com/niclabs/tcrsa"
 	"github.com/pebbe/zmq4"
@@ -13,14 +11,13 @@ import (
 )
 
 type Server struct {
-	ip       *net.IP
-	port     uint16
-	pubKey   string
-	keyShare *tcrsa.KeyShare
-	keyMeta  *tcrsa.KeyMeta
-	client   *Client
-	socket   *zmq4.Socket
-	channel  chan *message.Message
+	ip      *net.IP
+	port    uint16
+	pubKey  string
+	keys    map[string]*Key
+	client  *Client
+	socket  *zmq4.Socket
+	channel chan *message.Message
 }
 
 func (server *Server) GetID() string {
@@ -36,47 +33,46 @@ func (server *Server) Listen() {
 		resp := msg.CopyWithoutData(message.Ok)
 		switch msg.Type {
 		case message.SendKeyShare:
-			var keyShare tcrsa.KeyShare
-			var keyMeta tcrsa.KeyMeta
-			if server.keyShare != nil || server.keyMeta != nil {
-				resp.Error = message.AlreadyInitializedError
+			if len(msg.Data) != 3 { // keyID, keyshare, sigshare
+				resp.Error = message.InvalidMessageError
 				break
 			}
-			if len(msg.Data) != 2 {
+
+			keyID := string(msg.Data[0])
+			keyShare, err := message.DecodeKeyShare(msg.Data[1])
+			if err != nil {
 				resp.Error = message.KeyShareDecodeError
 				break
 			}
-			keyShareBuffer := bytes.NewBuffer(msg.Data[0])
-			keyShareDecoder := gob.NewDecoder(keyShareBuffer)
-			if err := keyShareDecoder.Decode(&keyShare); err != nil {
-				resp.Error = message.KeyShareDecodeError
-				break
-			}
-			keyMetaBuffer := bytes.NewBuffer(msg.Data[1])
-			keyMetaDecoder := gob.NewDecoder(keyMetaBuffer)
-			if err := keyMetaDecoder.Decode(&keyMeta); err != nil {
-				server.keyShare = nil
+			keyMeta, err := message.DecodeKeyMeta(msg.Data[2])
+			if err != nil {
 				resp.Error = message.KeyMetaDecodeError
 				break
 			}
-			server.SaveKey(&keyShare, &keyMeta)
+			server.SaveKey(keyID, keyShare, keyMeta)
 		case message.AskForSigShare:
-			if server.keyShare == nil || server.keyMeta == nil {
+			if len(msg.Data) != 2 {
+				resp.Error = message.InvalidMessageError
+				break
+			}
+			keyID := string(msg.Data[0])
+			key, ok :=  server.keys[keyID]
+			if !ok {
 				resp.Error = message.NotInitializedError
 				break
 			}
-			doc := msg.Data[0]
-			sigShare, err := server.keyShare.Sign(doc, crypto.SHA256, server.keyMeta)
+			doc := msg.Data[1]
+			sigShare, err := key.Share.Sign(doc, crypto.SHA256, key.Meta)
 			if err != nil {
 				resp.Error = message.DocSignError
 				break
 			}
-			var keyBuffer bytes.Buffer
-			if err := gob.NewEncoder(&keyBuffer).Encode(sigShare); err != nil {
+			encodedSigShare, err := message.EncodeSigShare(sigShare)
+			if err != nil {
 				resp.Error = message.SigShareEncodeError
 				break
 			}
-			resp.AddMessage(keyBuffer.Bytes())
+			resp.AddMessage(encodedSigShare)
 		default:
 			resp.Error = message.InvalidMessageError
 		}
@@ -89,9 +85,21 @@ func (server *Server) Listen() {
 	}
 }
 
-func (server *Server) SaveKey(keyShare *tcrsa.KeyShare, keyMeta *tcrsa.KeyMeta) {
-	server.keyShare = keyShare
-	server.keyMeta = keyMeta
+func (server *Server) SaveKey(id string, keyShare *tcrsa.KeyShare, keyMeta *tcrsa.KeyMeta) {
+	key, ok := server.keys[id]
+	if !ok {
+		key = &Key{}
+		server.keys[id] = key
+	}
+	key.Meta = keyMeta
+	key.Share = keyShare
 	server.client.SaveConfigKeys()
-	// Encode keyshare and keymeta and save them in client config
 }
+
+type Key struct {
+	ID    string
+	Share *tcrsa.KeyShare
+	Meta  *tcrsa.KeyMeta
+}
+
+

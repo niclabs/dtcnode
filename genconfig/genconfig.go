@@ -91,5 +91,6 @@ func main() {
 		return
 	}
 
-	_, _ = fmt.Fprintf(os.Stderr, "config files written successfully in %s\n", out)
+	_, _ = fmt.Fprintf(os.Stderr, "config file written successfully in %s\n", out)
+	_, _ = fmt.Fprintf(os.Stderr, "PUBLIC KEY: %s\n", pk)
 }

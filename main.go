@@ -8,7 +8,8 @@ import (
 
 func init() {
 	viper.SetConfigName("config")
-	viper.AddConfigPath("./") // config should be in the same folder
+	viper.AddConfigPath("/etc/dtcnode/")
+	viper.AddConfigPath("./")
 	if err := viper.ReadInConfig(); err != nil {
 		panic(fmt.Errorf("config file not found! %v", err))
 	}

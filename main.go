@@ -4,6 +4,7 @@ import (
 	"fmt"
 	config2 "github.com/niclabs/dtcnode/config"
 	"github.com/spf13/viper"
+	"os"
 )
 
 func init() {
@@ -25,7 +26,8 @@ func main() {
 
 	n, err := InitClient(&config)
 	if err != nil {
-		panic(err)
+		_, _ = fmt.Fprintf(os.Stderr, "error initializing client: %s", err)
+		return
 	}
 	n.Listen()
 }

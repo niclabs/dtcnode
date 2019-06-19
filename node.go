@@ -31,6 +31,7 @@ type Client struct {
 
 func InitClient(config *config.Config) (*Client, error) {
 
+
 	ip := net.ParseIP(config.IP)
 	if ip == nil {
 		return nil, fmt.Errorf("invalid ip format")

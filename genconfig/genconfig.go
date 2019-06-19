@@ -86,7 +86,7 @@ func main() {
 	// write config
 	v := viper.New()
 	v.Set("config", conf)
-	stat, err := os.Stat(out)
+	_, err = os.Stat(out)
 	if !os.IsNotExist(err) {
 		_, _ = fmt.Fprintf(os.Stderr, "error writing config file: file already exists\n")
 		return

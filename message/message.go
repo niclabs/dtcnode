@@ -7,7 +7,7 @@ import (
 type Message struct {
 	NodeID string
 	ID     string
-	Type   MessageType
+	Type   Type
 	Error  NodeError
 	Data   [][]byte
 }
@@ -19,13 +19,13 @@ func FromBytes(rawMsg [][]byte) (*Message, error) {
 	return &Message{
 		NodeID: string(rawMsg[0]), // Provided by
 		ID:     string(rawMsg[1]),
-		Type:   MessageType(rawMsg[2][0]),
+		Type:   Type(rawMsg[2][0]),
 		Error:  NodeError(rawMsg[3][0]),
 		Data:   rawMsg[4:],
 	}, nil
 }
 
-func NewMessage(rType MessageType, nodeID string, msgs ...[]byte) (*Message, error) {
+func NewMessage(rType Type, nodeID string, msgs ...[]byte) (*Message, error) {
 	id, err := GetRandomHexString(6)
 	if err != nil {
 		return nil, err
@@ -66,9 +66,8 @@ func (message *Message) CopyWithoutData(status NodeError) *Message {
 	}
 }
 
-
 func (message *Message) Ok(message2 *Message, minDataLen int) error {
-	if message.ID != message2.ID  {
+	if message.ID != message2.ID {
 		return fmt.Errorf("ID mismatch: got: %s, expected: %s", message.ID, message2.ID)
 	}
 	if message.NodeID != message2.NodeID {

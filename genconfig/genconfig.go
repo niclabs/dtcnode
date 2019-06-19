@@ -30,6 +30,7 @@ func GetIPAndPort(ipPort string) (ip string, port uint16, err error) {
 		err = fmt.Errorf("node ip and port format invalid. It should be ip:port\n")
 		return
 	}
+	ip = nodeArr[0]
 	portInt, err := strconv.Atoi(nodeArr[1])
 	if err != nil {
 		err = fmt.Errorf("could not convert port to int: %s\n", err)
@@ -85,6 +86,11 @@ func main() {
 	// write config
 	v := viper.New()
 	v.Set("config", conf)
+	stat, err := os.Stat(out)
+	if !os.IsNotExist(err) {
+		_, _ = fmt.Fprintf(os.Stderr, "error writing config file: file already exists\n")
+		return
+	}
 	err = v.WriteConfigAs(out)
 	if err != nil {
 		_, _ = fmt.Fprintf(os.Stderr, "error writing config file: %s\n", err)

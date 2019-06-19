@@ -1,4 +1,4 @@
-module dtcnode
+module github.com/niclabs/dtcnode
 
 go 1.12
 

@@ -2,8 +2,8 @@ package main
 
 import (
 	"crypto"
-	"dtcnode/message"
 	"fmt"
+	"github.com/niclabs/dtcnode/message"
 	"github.com/niclabs/tcrsa"
 	"github.com/pebbe/zmq4"
 	"log"
@@ -56,7 +56,7 @@ func (server *Server) Listen() {
 				break
 			}
 			keyID := string(msg.Data[0])
-			key, ok :=  server.keys[keyID]
+			key, ok := server.keys[keyID]
 			if !ok {
 				resp.Error = message.NotInitializedError
 				break
@@ -101,5 +101,3 @@ type Key struct {
 	Share *tcrsa.KeyShare
 	Meta  *tcrsa.KeyMeta
 }
-
-

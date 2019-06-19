@@ -1,9 +1,10 @@
 package main
 
 import (
-	"dtcnode/message"
 	"encoding/base64"
 	"fmt"
+	"github.com/niclabs/dtcnode/config"
+	"github.com/niclabs/dtcnode/message"
 	"github.com/niclabs/tcrsa"
 	"github.com/pebbe/zmq4"
 	"github.com/spf13/viper"
@@ -21,14 +22,14 @@ type Client struct {
 	pubKey      string
 	ip          net.IP
 	port        uint16
-	config      *Config
+	config      *config.Config
 	context     *zmq4.Context
 	socket      *zmq4.Socket
 	servers     map[string]*Server
 	configMutex sync.Mutex
 }
 
-func InitClient(config *Config) (*Client, error) {
+func InitClient(config *config.Config) (*Client, error) {
 
 	ip := net.ParseIP(config.IP)
 	if ip == nil {
@@ -74,7 +75,7 @@ func InitClient(config *Config) (*Client, error) {
 			ip:     &serverIP,
 			port:   config.Port,
 			client: node,
-			keys: make(map[string]*Key, len(serverConfig.Keys)),
+			keys:   make(map[string]*Key, len(serverConfig.Keys)),
 		}
 
 		for _, key := range serverConfig.Keys {
@@ -104,7 +105,6 @@ func InitClient(config *Config) (*Client, error) {
 				Share: keyShare,
 			}
 		}
-
 
 		out, err := context.NewSocket(zmq4.DEALER)
 		if err != nil {
@@ -156,10 +156,10 @@ func (client *Client) SaveConfigKeys() error {
 			keyMetaB64 := base64.StdEncoding.EncodeToString(keyMetaBytes)
 			keyConfig := serverConfig.GetKeyByID(key.ID)
 			if keyConfig == nil {
-				serverConfig.Keys = append(serverConfig.Keys, &KeyConfig{
-					ID: key.ID,
+				serverConfig.Keys = append(serverConfig.Keys, &config.KeyConfig{
+					ID:          key.ID,
 					KeyMetaInfo: keyMetaB64,
-					KeyShare: keyShareB64,
+					KeyShare:    keyShareB64,
 				})
 			}
 		}

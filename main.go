@@ -16,7 +16,7 @@ func init() {
 
 func main() {
 	var config Config
-	err := viper.Unmarshal(&config)
+	err := viper.UnmarshalKey("dtcnode", &config)
 	if err != nil {
 		panic(err)
 	}

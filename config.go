@@ -20,7 +20,7 @@ func (config *Config) GetServerByID(id string) *ServerConfig {
 func (config *Config) GetServerIPs() []string {
 	ips := make([]string, len(config.Servers))
 	for i, server := range config.Servers {
-		ips[i] = server.IP
+		ips[i] = server.Host
 	}
 	return ips
 }
@@ -35,7 +35,7 @@ func (config *Config) GetServerPubKeys() []string {
 
 type ServerConfig struct {
 	PublicKey string
-	IP        string
+	Host      string
 	Port      uint16
 	Keys      []*KeyConfig
 }

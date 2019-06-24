@@ -8,7 +8,6 @@ import (
 	"github.com/pebbe/zmq4"
 	"github.com/spf13/viper"
 	"log"
-	"net"
 	"os"
 	"sync"
 )
@@ -29,7 +28,6 @@ type Client struct {
 }
 
 func InitClient(config *Config) (*Client, error) {
-
 
 	node := &Client{
 		pubKey:  config.PublicKey,

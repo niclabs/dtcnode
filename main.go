@@ -15,7 +15,6 @@ func init() {
 	}
 }
 
-
 func main() {
 	var config Config
 	err := viper.UnmarshalKey("dtcnode", &config)

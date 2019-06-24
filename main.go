@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	config2 "github.com/niclabs/dtcnode/config"
 	"github.com/spf13/viper"
 	"os"
 )
@@ -18,7 +17,7 @@ func init() {
 
 
 func main() {
-	var config config2.Config
+	var config Config
 	err := viper.UnmarshalKey("dtcnode", &config)
 	if err != nil {
 		panic(err)

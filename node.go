@@ -3,7 +3,6 @@ package main
 import (
 	"encoding/base64"
 	"fmt"
-	"github.com/niclabs/dtcnode/config"
 	"github.com/niclabs/dtcnode/message"
 	"github.com/niclabs/tcrsa"
 	"github.com/pebbe/zmq4"
@@ -20,26 +19,22 @@ const TchsmProtocol = "tcp"
 type Client struct {
 	privKey     string
 	pubKey      string
-	ip          net.IP
+	host        string
 	port        uint16
-	config      *config.Config
+	config      *Config
 	context     *zmq4.Context
 	socket      *zmq4.Socket
 	servers     map[string]*Server
 	configMutex sync.Mutex
 }
 
-func InitClient(config *config.Config) (*Client, error) {
+func InitClient(config *Config) (*Client, error) {
 
 
-	ip := net.ParseIP(config.IP)
-	if ip == nil {
-		return nil, fmt.Errorf("invalid ip format")
-	}
 	node := &Client{
 		pubKey:  config.PublicKey,
 		privKey: config.PrivateKey,
-		ip:      ip,
+		host:    config.Host,
 		port:    config.Port,
 		config:  config,
 		servers: make(map[string]*Server, len(config.Servers)),
@@ -70,11 +65,10 @@ func InitClient(config *config.Config) (*Client, error) {
 
 	for _, serverConfig := range config.Servers {
 
-		serverIP := net.ParseIP(config.IP)
 		server := &Server{
-			pubKey: config.PublicKey,
-			ip:     &serverIP,
-			port:   config.Port,
+			pubKey: serverConfig.PublicKey,
+			host:   serverConfig.Host,
+			port:   serverConfig.Port,
 			client: node,
 			keys:   make(map[string]*Key, len(serverConfig.Keys)),
 		}
@@ -133,7 +127,7 @@ func (client *Client) GetID() string {
 }
 
 func (client *Client) GetConnString() string {
-	return fmt.Sprintf("%s://%s:%d", TchsmProtocol, client.ip, client.port)
+	return fmt.Sprintf("%s://%s:%d", TchsmProtocol, client.host, client.port)
 }
 
 func (client *Client) SaveConfigKeys() error {
@@ -157,7 +151,7 @@ func (client *Client) SaveConfigKeys() error {
 			keyMetaB64 := base64.StdEncoding.EncodeToString(keyMetaBytes)
 			keyConfig := serverConfig.GetKeyByID(key.ID)
 			if keyConfig == nil {
-				serverConfig.Keys = append(serverConfig.Keys, &config.KeyConfig{
+				serverConfig.Keys = append(serverConfig.Keys, &KeyConfig{
 					ID:          key.ID,
 					KeyMetaInfo: keyMetaB64,
 					KeyShare:    keyShareB64,

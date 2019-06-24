@@ -1,0 +1,18 @@
+config:
+  publickey: MK0/0i?:t+4bj9pV3Y0q(K{u{JpO^U2Ha$(ZZ4Lv
+  privatekey: dgeEEhpAK(8dBQ2QZHEo^{ITY<gbz9{k}NbrR{LR
+  ip: localhost
+  port: 2030
+  servers:
+  - publickey: hola
+    ip: localhost
+    port: 2031
+    keys: []
+  - publickey: mundo
+    ip: localhost
+    port: 2032
+    keys: []
+  - publickey: "123"
+    ip: localhost
+    port: 2033
+    keys: []

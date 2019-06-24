@@ -1,9 +1,9 @@
-package config
+package main
 
 type Config struct {
 	PublicKey  string
 	PrivateKey string
-	IP         string
+	Host       string
 	Port       uint16
 	Servers    []*ServerConfig
 }

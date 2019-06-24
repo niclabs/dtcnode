@@ -7,11 +7,10 @@ import (
 	"github.com/niclabs/tcrsa"
 	"github.com/pebbe/zmq4"
 	"log"
-	"net"
 )
 
 type Server struct {
-	ip      *net.IP
+	host    string
 	port    uint16
 	pubKey  string
 	keys    map[string]*Key
@@ -25,7 +24,7 @@ func (server *Server) GetID() string {
 }
 
 func (server *Server) GetConnString() string {
-	return fmt.Sprintf("%s://%s:%d", TchsmProtocol, server.ip, server.port)
+	return fmt.Sprintf("%s://%s:%d", TchsmProtocol, server.host, server.port)
 }
 
 func (server *Server) Listen() {

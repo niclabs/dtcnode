@@ -93,7 +93,7 @@ func main() {
 	}
 	err = v.WriteConfigAs(out)
 	if err != nil {
-		_, _ = fmt.Fprintf(os.Stderr, "error writing config file: %s\n", err)
+		_, _ = fmt.Fprintf(os.Stderr, "cannot write config file: %s\n", err)
 		return
 	}
 

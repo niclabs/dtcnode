@@ -22,7 +22,7 @@ type Client struct {
 	config      *Config
 	context     *zmq4.Context
 	socket      *zmq4.Socket
-	servers     map[string]*Server
+	servers     []*Server
 	configMutex sync.Mutex
 }
 
@@ -34,7 +34,7 @@ func InitClient(config *Config) (*Client, error) {
 		host:    config.Host,
 		port:    config.Port,
 		config:  config,
-		servers: make(map[string]*Server, len(config.Servers)),
+		servers: make([]*Server, len(config.Servers)),
 	}
 
 	context, err := zmq4.NewContext()
@@ -112,7 +112,7 @@ func InitClient(config *Config) (*Client, error) {
 			return nil, err
 		}
 		server.socket = in
-		node.servers[serverConfig.PublicKey] = server
+		node.servers = append(node.servers, server)
 	}
 	node.socket = in
 
@@ -121,6 +121,15 @@ func InitClient(config *Config) (*Client, error) {
 
 func (client *Client) GetID() string {
 	return client.pubKey
+}
+
+func (client *Client) FindServer(name string) *Server {
+	for _, server := range client.servers {
+		if server.pubKey == name {
+			return server
+		}
+	}
+	return nil
 }
 
 func (client *Client) GetConnString() string {
@@ -179,7 +188,7 @@ func (client *Client) Listen() {
 			log.Printf("%s", message.ParseMessageError.ComposeError(err))
 			continue
 		}
-		if server, ok := client.servers[msg.NodeID]; ok {
+		if server := client.FindServer(msg.NodeID); server != nil {
 			server.channel <- msg
 		} else {
 			log.Printf("could not send message to server listener %s: not found", msg.NodeID)

@@ -77,6 +77,8 @@ func (server *Server) Listen() {
 			}
 			resp.AddMessage(encodedSigShare)
 		default:
+			log.Printf("invalid message received from server %s", server.GetConnString())
+
 			resp.Error = message.InvalidMessageError
 		}
 		if resp.Error != message.Ok {

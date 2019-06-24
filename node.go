@@ -34,7 +34,7 @@ func InitClient(config *Config) (*Client, error) {
 		host:    config.Host,
 		port:    config.Port,
 		config:  config,
-		servers: make([]*Server, len(config.Servers)),
+		servers: make([]*Server, 0),
 	}
 
 	context, err := zmq4.NewContext()

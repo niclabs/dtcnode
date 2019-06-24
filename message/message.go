@@ -31,9 +31,9 @@ func NewMessage(rType Type, nodeID string, msgs ...[]byte) (*Message, error) {
 		return nil, err
 	}
 	req := &Message{
+		NodeID: nodeID,
 		ID:     id,
 		Type:   rType,
-		NodeID: nodeID,
 		Data:   make([][]byte, 0),
 	}
 	req.Data = append(req.Data, msgs...)

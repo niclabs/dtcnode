@@ -33,6 +33,7 @@ func (server *Server) Listen() {
 		resp := msg.CopyWithoutData(message.Ok)
 		switch msg.Type {
 		case message.SendKeyShare:
+			log.Printf("SendKeyShare message received from server %s", server.GetConnString())
 			if len(msg.Data) != 3 { // keyID, keyshare, sigshare
 				resp.Error = message.InvalidMessageError
 				break
@@ -51,6 +52,8 @@ func (server *Server) Listen() {
 			}
 			server.SaveKey(keyID, keyShare, keyMeta)
 		case message.AskForSigShare:
+			log.Printf("AskForSigShare message received from server %s", server.GetConnString())
+
 			if len(msg.Data) != 2 {
 				resp.Error = message.InvalidMessageError
 				break
@@ -79,9 +82,11 @@ func (server *Server) Listen() {
 		if resp.Error != message.Ok {
 			log.Printf("%s", resp.Error.Error())
 		}
+		log.Printf("sending response to server %s", server.GetConnString())
 		if _, err := server.socket.SendMessage(resp.GetBytesLists()...); err != nil {
 			log.Printf("%s", err.Error())
 		}
+		log.Printf("sent response to server %s", server.GetConnString())
 	}
 }
 

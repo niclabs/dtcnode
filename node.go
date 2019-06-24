@@ -179,7 +179,6 @@ func (client *Client) Listen() {
 			log.Printf("%s", message.ParseMessageError.ComposeError(err))
 			continue
 		}
-		log.Printf("message parsed: %#v", msg)
 		if server, ok := client.servers[msg.NodeID]; ok {
 			server.channel <- msg
 		}

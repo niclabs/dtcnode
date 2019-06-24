@@ -28,6 +28,7 @@ func (server *Server) GetConnString() string {
 }
 
 func (server *Server) Listen() {
+	log.Printf("Listening messages from server %s", server.GetConnString())
 	for msg := range server.channel {
 		resp := msg.CopyWithoutData(message.Ok)
 		switch msg.Type {

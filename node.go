@@ -8,7 +8,6 @@ import (
 	"github.com/pebbe/zmq4"
 	"github.com/spf13/viper"
 	"log"
-	"os"
 	"sync"
 )
 
@@ -161,7 +160,7 @@ func (client *Client) SaveConfigKeys() error {
 }
 
 func (client *Client) Listen() {
-	log.Printf("listening to %s...", client.GetConnString())
+	log.Printf("listening to %s", client.GetConnString())
 
 	for _, server := range client.servers {
 		go server.Listen()
@@ -170,17 +169,17 @@ func (client *Client) Listen() {
 	for {
 		rawMsg, err := client.socket.RecvMessageBytes(0)
 		if err != nil {
-			_, _ = fmt.Fprintf(os.Stderr, "%s\n", message.ReceiveMessageError.ComposeError(err))
+			log.Printf("%s", message.ReceiveMessageError.ComposeError(err))
 			continue
 		}
-		_, _ = fmt.Fprintf(os.Stderr, "message from client %s\n", rawMsg[0])
-		_, _ = fmt.Fprintf(os.Stderr, "parsing message...\n")
+		log.Printf("message from client %s", rawMsg[0])
+		log.Printf("parsing message")
 		msg, err := message.FromBytes(rawMsg)
 		if err != nil {
-			_, _ = fmt.Fprintf(os.Stderr, "%s\n", message.ParseMessageError.ComposeError(err))
+			log.Printf("%s", message.ParseMessageError.ComposeError(err))
 			continue
 		}
-
+		log.Printf("message parsed: %#v", msg)
 		if server, ok := client.servers[msg.NodeID]; ok {
 			server.channel <- msg
 		}

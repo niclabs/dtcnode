@@ -20,7 +20,7 @@ func init() {
 
 func main() {
 	var conf config.Config
-	err := viper.UnmarshalKey("conf", &conf)
+	err := viper.UnmarshalKey("config", &conf)
 	if err != nil {
 		panic(err)
 	}

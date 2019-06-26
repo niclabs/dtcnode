@@ -18,8 +18,8 @@ var out string
 
 func init() {
 	flag.StringVar(&node, "n", "", "node ip and port")
-	flag.StringVar(&server, "s", "", "server ip and port, separated by commas if more than one server")
-	flag.StringVar(&pk, "k", "", "base85 server public key, separated by commas if more than one server")
+	flag.StringVar(&server, "s", "", "server ip and port")
+	flag.StringVar(&pk, "k", "", "base85 server public key")
 	flag.StringVar(&out, "o", "./config.yaml", "path where to output the config file (default: ./config.yaml)")
 	flag.Parse()
 }
@@ -42,13 +42,6 @@ func GetIPAndPort(ipPort string) (ip string, port uint16, err error) {
 
 func main() {
 
-	servers := strings.Split(server, ",")
-	pks := strings.Split(pk, ",")
-
-	if len(servers) != len(pks) {
-		_, _ = fmt.Fprintf(os.Stderr, "number of servers, pks and sks provided is different\n")
-		return
-	}
 
 	pk, sk, err := zmq4.NewCurveKeypair()
 	if err != nil {
@@ -67,21 +60,18 @@ func main() {
 		PrivateKey: sk,
 		IP:         nodeIP,
 		Port:       nodePort,
-		Servers:    make([]*config.ServerConfig, len(servers)),
 	}
 
-	for i := 0; i < len(servers); i++ {
-		serverIP, serverPort, err := GetIPAndPort(servers[i])
+		serverIP, serverPort, err := GetIPAndPort(server)
 		if err != nil {
 			_, _ = fmt.Fprintf(os.Stderr, "could not parse ip and port of servers: %s\n", err)
 			return
 		}
-		conf.Servers[i] = &config.ServerConfig{
-			PublicKey: pks[i],
+		conf.Server = &config.ServerConfig{
+			PublicKey: pk,
 			IP:        serverIP,
 			Port:      serverPort,
 		}
-	}
 
 	// write config
 	v := viper.New()

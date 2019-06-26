@@ -43,7 +43,7 @@ func GetHostAndPort(ipPort string) (ip string, port uint16, err error) {
 
 func main() {
 
-	pk, sk, err := zmq4.NewCurveKeypair()
+	nodePK, nodeSK, err := zmq4.NewCurveKeypair()
 	if err != nil {
 		_, _ = fmt.Fprintf(os.Stderr, "could not generate curve key pair: %s\n", err)
 		return
@@ -56,8 +56,8 @@ func main() {
 	}
 
 	conf := config.Config{
-		PublicKey:  pk,
-		PrivateKey: sk,
+		PublicKey:  nodePK,
+		PrivateKey: nodeSK,
 		Host:       nodeHost,
 		Port:       nodePort,
 	}

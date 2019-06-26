@@ -28,12 +28,12 @@ func (server *Server) GetConnString() string {
 }
 
 func (server *Server) Listen() {
-	log.Printf("Listening messages from server %s", server.GetConnString())
+	log.Printf("Listening messages from server %s in %s", server.GetConnString(), server.client.GetConnString())
 	for msg := range server.channel {
 		resp := msg.CopyWithoutData(message.Ok)
 		switch msg.Type {
 		case message.SendKeyShare:
-			log.Printf("SendKeyShare message received from server %s", server.GetConnString())
+			log.Printf("Server %s is sending us a new KeyShare", server.GetConnString())
 			if len(msg.Data) != 3 { // keyID, keyshare, sigshare
 				resp.Error = message.InvalidMessageError
 				break
@@ -50,26 +50,29 @@ func (server *Server) Listen() {
 				resp.Error = message.KeyMetaDecodeError
 				break
 			}
+			log.Printf("Saving keyshare for keyid=%s", keyID)
 			server.SaveKey(keyID, keyShare, keyMeta)
+			log.Printf("Keyshare saved for keyid=%s", keyID)
 		case message.AskForSigShare:
-			log.Printf("AskForSigShare message received from server %s", server.GetConnString())
-
 			if len(msg.Data) != 2 {
 				resp.Error = message.InvalidMessageError
 				break
 			}
 			keyID := string(msg.Data[0])
+			log.Printf("Server %s is asking us for a signature share using key %s", server.GetConnString(), keyID)
 			key, ok := server.keys[keyID]
 			if !ok {
 				resp.Error = message.NotInitializedError
 				break
 			}
 			doc := msg.Data[1]
+			log.Printf("Signing document hash %s with key %s as asked by server %s", doc, keyID, server.GetConnString())
 			sigShare, err := key.Share.Sign(doc, crypto.SHA256, key.Meta)
 			if err != nil {
 				resp.Error = message.DocSignError
 				break
 			}
+			log.Printf("The document hash %s was signed succesfully with key %s as asked by server %s", doc, keyID, server.GetConnString())
 			encodedSigShare, err := message.EncodeSigShare(sigShare)
 			if err != nil {
 				resp.Error = message.SigShareEncodeError
@@ -88,7 +91,7 @@ func (server *Server) Listen() {
 		if _, err := server.socket.SendMessage(resp.GetBytesLists()...); err != nil {
 			log.Printf("%s", err.Error())
 		}
-		log.Printf("sent response to server %s", server.GetConnString())
+		log.Printf("A response to server %s was sent", server.GetConnString())
 	}
 }
 

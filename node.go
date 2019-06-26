@@ -67,6 +67,7 @@ func InitClient(config *config.Config) (*Client, error) {
 		host:   serverConfig.Host,
 		port:   serverConfig.Port,
 		client: node,
+		channel: make(chan *message.Message),
 		keys:   make(map[string]*Key, len(serverConfig.Keys)),
 	}
 
@@ -167,8 +168,6 @@ func (client *Client) SaveConfigKeys() error {
 }
 
 func (client *Client) Listen() {
-	log.Printf("listening to %s", client.GetConnString())
-
 	for _, server := range client.servers {
 		go server.Listen()
 	}
@@ -187,7 +186,7 @@ func (client *Client) Listen() {
 			continue
 		}
 		if server := client.FindServer(msg.NodeID); server != nil {
-			log.Printf("nodeID is valid, sending to channel", msg.NodeID)
+			log.Printf("nodeID %s is valid, sending to channel", msg.NodeID)
 			server.channel <- msg
 		} else {
 			log.Printf("could not send message to server listener %s: not found", msg.NodeID)

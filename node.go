@@ -166,6 +166,7 @@ func (client *Client) SaveConfigKeys() error {
 			}
 		}
 	}
+	viper.Set("config", client.config)
 	return viper.WriteConfig()
 }
 

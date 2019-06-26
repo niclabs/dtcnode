@@ -1,4 +1,4 @@
-package main
+package config
 
 type Config struct {
 	PublicKey  string

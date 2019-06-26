@@ -6,6 +6,7 @@ import (
 	"github.com/niclabs/dtcnode/config"
 	"github.com/pebbe/zmq4"
 	"github.com/spf13/viper"
+	"honnef.co/go/tools/config"
 	"os"
 	"strconv"
 	"strings"
@@ -42,7 +43,6 @@ func GetIPAndPort(ipPort string) (ip string, port uint16, err error) {
 
 func main() {
 
-
 	pk, sk, err := zmq4.NewCurveKeypair()
 	if err != nil {
 		_, _ = fmt.Fprintf(os.Stderr, "could not generate curve key pair: %s\n", err)
@@ -55,23 +55,23 @@ func main() {
 		return
 	}
 
-	conf := config.Config{
+	conf := dtcnode.Config{
 		PublicKey:  pk,
 		PrivateKey: sk,
 		IP:         nodeIP,
 		Port:       nodePort,
 	}
 
-		serverIP, serverPort, err := GetIPAndPort(server)
-		if err != nil {
-			_, _ = fmt.Fprintf(os.Stderr, "could not parse ip and port of servers: %s\n", err)
-			return
-		}
-		conf.Server = &config.ServerConfig{
-			PublicKey: pk,
-			IP:        serverIP,
-			Port:      serverPort,
-		}
+	serverIP, serverPort, err := GetIPAndPort(server)
+	if err != nil {
+		_, _ = fmt.Fprintf(os.Stderr, "could not parse ip and port of servers: %s\n", err)
+		return
+	}
+	conf.Server = &config.ServerConfig{
+		PublicKey: pk,
+		IP:        serverIP,
+		Port:      serverPort,
+	}
 
 	// write config
 	v := viper.New()

@@ -109,7 +109,7 @@ func InitClient(config *config.Config) (*Client, error) {
 	if err := out.ClientAuthCurve(serverConfig.PublicKey, node.pubKey, node.privKey); err != nil {
 		return nil, err
 	}
-	if err := in.Connect(server.GetConnString()); err != nil {
+	if err := out.Connect(server.GetConnString()); err != nil {
 		return nil, err
 	}
 	server.socket = out

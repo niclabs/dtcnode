@@ -5,31 +5,25 @@ type Config struct {
 	PrivateKey string
 	Host       string
 	Port       uint16
-	Servers    []*ServerConfig
+	Server     *ServerConfig
 }
 
 func (config *Config) GetServerByID(id string) *ServerConfig {
-	for _, serverConfig := range config.Servers {
-		if serverConfig.PublicKey == id {
-			return serverConfig
-		}
+	if config.Server.PublicKey == id {
+		return config.Server
 	}
 	return nil
 }
 
 func (config *Config) GetServerIPs() []string {
-	ips := make([]string, len(config.Servers))
-	for i, server := range config.Servers {
-		ips[i] = server.Host
-	}
+	ips := make([]string, 1)
+	ips[0] = config.Server.Host
 	return ips
 }
 
 func (config *Config) GetServerPubKeys() []string {
-	pubkeys := make([]string, len(config.Servers))
-	for i, server := range config.Servers {
-		pubkeys[i] = server.PublicKey
-	}
+	pubkeys := make([]string, 1)
+	pubkeys[0] = config.Server.PublicKey
 	return pubkeys
 }
 
@@ -54,5 +48,3 @@ type KeyConfig struct {
 	KeyShare    string
 	KeyMetaInfo string
 }
-
-

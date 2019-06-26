@@ -60,62 +60,59 @@ func InitClient(config *Config) (*Client, error) {
 		return nil, err
 	}
 
-	for _, serverConfig := range config.Servers {
-
-		server := &Server{
-			pubKey: serverConfig.PublicKey,
-			host:   serverConfig.Host,
-			port:   serverConfig.Port,
-			client: node,
-			keys:   make(map[string]*Key, len(serverConfig.Keys)),
-		}
-
-		for _, key := range serverConfig.Keys {
-			var keyShare *tcrsa.KeyShare
-			var keyMeta *tcrsa.KeyMeta
-			if key.KeyShare != "" && key.KeyMetaInfo != "" {
-				keyShareByte, err := base64.StdEncoding.DecodeString(key.KeyShare)
-				if err != nil {
-					return nil, err
-				}
-				keyShare, err = message.DecodeKeyShare(keyShareByte)
-				if err != nil {
-					return nil, err
-				}
-				keyMetaByte, err := base64.StdEncoding.DecodeString(key.KeyMetaInfo)
-				if err != nil {
-					return nil, err
-				}
-				keyMeta, err = message.DecodeKeyMeta(keyMetaByte)
-				if err != nil {
-					return nil, err
-				}
-			}
-			server.keys[key.ID] = &Key{
-				ID:    key.ID,
-				Meta:  keyMeta,
-				Share: keyShare,
-			}
-		}
-
-		out, err := context.NewSocket(zmq4.DEALER)
-		if err != nil {
-			return nil, err
-		}
-		if err := out.SetIdentity(node.GetID()); err != nil {
-			return nil, err
-		}
-		if err := out.ClientAuthCurve(serverConfig.PublicKey, node.pubKey, node.privKey); err != nil {
-			return nil, err
-		}
-		if err := in.Connect(server.GetConnString()); err != nil {
-			return nil, err
-		}
-		server.socket = in
-		node.servers = append(node.servers, server)
+	serverConfig := config.Server
+	server := &Server{
+		pubKey: serverConfig.PublicKey,
+		host:   serverConfig.Host,
+		port:   serverConfig.Port,
+		client: node,
+		keys:   make(map[string]*Key, len(serverConfig.Keys)),
 	}
-	node.socket = in
 
+	for _, key := range serverConfig.Keys {
+		var keyShare *tcrsa.KeyShare
+		var keyMeta *tcrsa.KeyMeta
+		if key.KeyShare != "" && key.KeyMetaInfo != "" {
+			keyShareByte, err := base64.StdEncoding.DecodeString(key.KeyShare)
+			if err != nil {
+				return nil, err
+			}
+			keyShare, err = message.DecodeKeyShare(keyShareByte)
+			if err != nil {
+				return nil, err
+			}
+			keyMetaByte, err := base64.StdEncoding.DecodeString(key.KeyMetaInfo)
+			if err != nil {
+				return nil, err
+			}
+			keyMeta, err = message.DecodeKeyMeta(keyMetaByte)
+			if err != nil {
+				return nil, err
+			}
+		}
+		server.keys[key.ID] = &Key{
+			ID:    key.ID,
+			Meta:  keyMeta,
+			Share: keyShare,
+		}
+	}
+
+	out, err := context.NewSocket(zmq4.DEALER)
+	if err != nil {
+		return nil, err
+	}
+	if err := out.SetIdentity(node.GetID()); err != nil {
+		return nil, err
+	}
+	if err := out.ClientAuthCurve(serverConfig.PublicKey, node.pubKey, node.privKey); err != nil {
+		return nil, err
+	}
+	if err := in.Connect(server.GetConnString()); err != nil {
+		return nil, err
+	}
+	server.socket = in
+	node.servers = append(node.servers, server)
+	node.socket = in
 	return node, nil
 }
 

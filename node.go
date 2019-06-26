@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/base64"
 	"fmt"
+	"github.com/niclabs/dtcnode/config"
 	"github.com/niclabs/dtcnode/message"
 	"github.com/niclabs/tcrsa"
 	"github.com/pebbe/zmq4"
@@ -19,14 +20,14 @@ type Client struct {
 	pubKey      string
 	host        string
 	port        uint16
-	config      *Config
+	config      *config.Config
 	context     *zmq4.Context
 	socket      *zmq4.Socket
 	servers     []*Server
 	configMutex sync.Mutex
 }
 
-func InitClient(config *Config) (*Client, error) {
+func InitClient(config *config.Config) (*Client, error) {
 
 	node := &Client{
 		pubKey:  config.PublicKey,
@@ -154,7 +155,7 @@ func (client *Client) SaveConfigKeys() error {
 			keyMetaB64 := base64.StdEncoding.EncodeToString(keyMetaBytes)
 			keyConfig := serverConfig.GetKeyByID(key.ID)
 			if keyConfig == nil {
-				serverConfig.Keys = append(serverConfig.Keys, &KeyConfig{
+				serverConfig.Keys = append(serverConfig.Keys, &config.KeyConfig{
 					ID:          key.ID,
 					KeyMetaInfo: keyMetaB64,
 					KeyShare:    keyShareB64,

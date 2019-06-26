@@ -1,5 +1,6 @@
 package message
 
+// Type enumerates the message types.
 type Type byte
 
 const (
@@ -8,6 +9,7 @@ const (
 	AskForSigShare
 )
 
+// TypeToString transforms a message type into a string. Useful for debugging.
 var TypeToString = map[Type]string{
 	None:           "Undefined type",
 	SendKeyShare:   "Send Key Share",

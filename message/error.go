@@ -2,6 +2,7 @@ package message
 
 import "fmt"
 
+// NodeError represents an error code from the nodes.
 type NodeError uint8
 
 const (
@@ -26,6 +27,7 @@ const (
 	UnknownError = NodeError(1<<8 - 1)
 )
 
+// ErrorToString maps the error codes to string messages. Useful for debugging.
 var ErrorToString = map[NodeError]string{
 	Ok:                      "not an error",
 	InvalidMessageError:     "invalid message",
@@ -49,6 +51,7 @@ func (err NodeError) Error() string {
 	return ErrorToString[err]
 }
 
+// Composes a nodeError with another error thrown by a routine the node uses.
 func (err NodeError) ComposeError(err2 error) string {
 	return fmt.Sprintf("%s: %s", err.Error(), err2.Error())
 }

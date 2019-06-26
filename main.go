@@ -28,7 +28,7 @@ func main() {
 		panic(fmt.Errorf("missing fields in conf file"))
 	}
 
-	n, err := InitClient(&conf)
+	n, err := InitNode(&conf)
 	if err != nil {
 		_, _ = fmt.Fprintf(os.Stderr, "error initializing client: %s", err)
 		return

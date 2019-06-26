@@ -24,6 +24,7 @@ func init() {
 	flag.Parse()
 }
 
+// GetHostAndPort splits a host and port string. Returns an error if something goes wrong.
 func GetHostAndPort(ipPort string) (ip string, port uint16, err error) {
 	nodeArr := strings.Split(ipPort, ":")
 	if len(nodeArr) != 2 {

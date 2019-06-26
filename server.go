@@ -10,24 +10,36 @@ import (
 	"log"
 )
 
+// Server represents the connection with the Distributed TCHSM server.
+// It saves its connection values, its public key, and the keyshares and keymetainfo sent by the server.
 type Server struct {
-	host    string
-	port    uint16
-	pubKey  string
-	keys    map[string]*Key
-	client  *Client
-	socket  *zmq4.Socket
-	channel chan *message.Message
+	host    string // IP where the server is listening.
+	port    uint16 // Port where the server is listening.
+	pubKey  string // Public key of the server. Used for SMQ CURVE auth.
+	keys    map[string]*Key // Dictionary with key shares created by this server.
+	client  *Node // A pointer to the node that manages this server subroutine.
+	socket  *zmq4.Socket // The output socket where the messages are sent to the server.
+	channel chan *message.Message // An internal channel where the main routine sends the messages for this server.
 }
 
+// Key represents a keyshare managed by the node and used by the server for signing documents.
+type Key struct {
+	ID    string
+	Share *tcrsa.KeyShare
+	Meta  *tcrsa.KeyMeta
+}
+
+// GetID returns the id of the server.
 func (server *Server) GetID() string {
 	return server.pubKey
 }
 
+// GetConnString returns the string that is used for connecting to the server.
 func (server *Server) GetConnString() string {
 	return fmt.Sprintf("%s://%s:%d", TchsmProtocol, server.host, server.port)
 }
 
+// Listen is the subroutine that keeps waiting for messages on its channel. Then it acts depending on each message.
 func (server *Server) Listen() {
 	log.Printf("Listening messages from server %s in %s", server.GetConnString(), server.client.GetConnString())
 	for msg := range server.channel {
@@ -39,7 +51,6 @@ func (server *Server) Listen() {
 				resp.Error = message.InvalidMessageError
 				break
 			}
-
 			keyID := string(msg.Data[0])
 			keyShare, err := message.DecodeKeyShare(msg.Data[1])
 			if err != nil {
@@ -101,6 +112,7 @@ func (server *Server) Listen() {
 	}
 }
 
+// SaveKey updates the key array of the server and asks the node to save the keys into the config file.
 func (server *Server) SaveKey(id string, keyShare *tcrsa.KeyShare, keyMeta *tcrsa.KeyMeta) error {
 	key, ok := server.keys[id]
 	if !ok {
@@ -113,8 +125,4 @@ func (server *Server) SaveKey(id string, keyShare *tcrsa.KeyShare, keyMeta *tcrs
 	return server.client.SaveConfigKeys()
 }
 
-type Key struct {
-	ID    string
-	Share *tcrsa.KeyShare
-	Meta  *tcrsa.KeyMeta
-}
+

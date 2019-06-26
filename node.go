@@ -12,24 +12,29 @@ import (
 	"sync"
 )
 
+// The domain of the ZMQ connection. This value must be the same in the server, or it will not work.
 const TchsmDomain = "tchsm"
+
+// The protocol used for the ZMQ connection. TCP is the best for this usage cases.
 const TchsmProtocol = "tcp"
 
-type Client struct {
-	privKey     string
-	pubKey      string
-	host        string
-	port        uint16
-	config      *config.Config
-	context     *zmq4.Context
-	socket      *zmq4.Socket
-	servers     []*Server
-	configMutex sync.Mutex
+// Node represents a node in the distributed TCHSM application. It saves zero or more keys from a configured server.
+type Node struct {
+	privKey     string         // The private key for the node, used in ZMQ CURVE Auth.
+	pubKey      string         // The public key for the node, used in ZMQ CURVE Auth.
+	host        string         // A string representing the IP the node is going to use to listen to requests.
+	port        uint16         // a int representing the port the node is going to use to listen to requests
+	config      *config.Config // A pointer to the struct which saves the configuration of the node.
+	context     *zmq4.Context  // The context used by zmq connections.
+	socket      *zmq4.Socket   //  The socket used to receive messages.
+	servers     []*Server      // A list of servers. Currently the configuration allows only one server at a time.
+	configMutex sync.Mutex     // A mutex used for config editing.
 }
 
-func InitClient(config *config.Config) (*Client, error) {
+// InitNode inits the node using the configuration provided. Returns a started node or an error if the function fails.
+func InitNode(config *config.Config) (*Node, error) {
 
-	node := &Client{
+	node := &Node{
 		pubKey:  config.PublicKey,
 		privKey: config.PrivateKey,
 		host:    config.Host,
@@ -64,12 +69,12 @@ func InitClient(config *config.Config) (*Client, error) {
 
 	serverConfig := config.Server
 	server := &Server{
-		pubKey: serverConfig.PublicKey,
-		host:   serverConfig.Host,
-		port:   serverConfig.Port,
-		client: node,
+		pubKey:  serverConfig.PublicKey,
+		host:    serverConfig.Host,
+		port:    serverConfig.Port,
+		client:  node,
 		channel: make(chan *message.Message),
-		keys:   make(map[string]*Key, len(serverConfig.Keys)),
+		keys:    make(map[string]*Key, len(serverConfig.Keys)),
 	}
 
 	for _, key := range serverConfig.Keys {
@@ -116,15 +121,16 @@ func InitClient(config *config.Config) (*Client, error) {
 	server.socket = out
 	node.servers = append(node.servers, server)
 
-
 	return node, nil
 }
 
-func (client *Client) GetID() string {
+// GetID returns the ID of the node.
+func (client *Node) GetID() string {
 	return client.pubKey
 }
 
-func (client *Client) FindServer(name string) *Server {
+// FindServer returns a server with the provided ID, or nil if it doesn't exist.
+func (client *Node) FindServer(name string) *Server {
 	for _, server := range client.servers {
 		if server.pubKey == name {
 			return server
@@ -133,11 +139,14 @@ func (client *Client) FindServer(name string) *Server {
 	return nil
 }
 
-func (client *Client) GetConnString() string {
+// GetConnString returns the string that is used to bind the client to a port.
+func (client *Node) GetConnString() string {
 	return fmt.Sprintf("%s://%s:%d", TchsmProtocol, client.host, client.port)
 }
 
-func (client *Client) SaveConfigKeys() error {
+
+// SaveConfigKeys saves the currently received keys into memory.
+func (client *Node) SaveConfigKeys() error {
 	client.configMutex.Lock()
 	defer client.configMutex.Unlock()
 	for _, server := range client.servers {
@@ -170,7 +179,8 @@ func (client *Client) SaveConfigKeys() error {
 	return viper.WriteConfig()
 }
 
-func (client *Client) Listen() {
+// Listen starts all the server listening subroutines, and waits for a message received in the input socket. It checks and parses the messages to Message objects and sends them to a channel, that is used by the subroutines.
+func (client *Node) Listen() {
 	for _, server := range client.servers {
 		go server.Listen()
 	}

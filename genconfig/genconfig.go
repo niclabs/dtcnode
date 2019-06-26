@@ -6,7 +6,6 @@ import (
 	"github.com/niclabs/dtcnode/config"
 	"github.com/pebbe/zmq4"
 	"github.com/spf13/viper"
-	"honnef.co/go/tools/config"
 	"os"
 	"strconv"
 	"strings"
@@ -25,7 +24,7 @@ func init() {
 	flag.Parse()
 }
 
-func GetIPAndPort(ipPort string) (ip string, port uint16, err error) {
+func GetHostAndPort(ipPort string) (ip string, port uint16, err error) {
 	nodeArr := strings.Split(ipPort, ":")
 	if len(nodeArr) != 2 {
 		err = fmt.Errorf("node ip and port format invalid. It should be ip:port\n")
@@ -49,27 +48,27 @@ func main() {
 		return
 	}
 
-	nodeIP, nodePort, err := GetIPAndPort(node)
+	nodeHost, nodePort, err := GetHostAndPort(node)
 	if err != nil {
 		_, _ = fmt.Fprintf(os.Stderr, "%s", err)
 		return
 	}
 
-	conf := dtcnode.Config{
+	conf := config.Config{
 		PublicKey:  pk,
 		PrivateKey: sk,
-		IP:         nodeIP,
+		Host:       nodeHost,
 		Port:       nodePort,
 	}
 
-	serverIP, serverPort, err := GetIPAndPort(server)
+	serverHost, serverPort, err := GetHostAndPort(server)
 	if err != nil {
 		_, _ = fmt.Fprintf(os.Stderr, "could not parse ip and port of servers: %s\n", err)
 		return
 	}
 	conf.Server = &config.ServerConfig{
 		PublicKey: pk,
-		IP:        serverIP,
+		Host:      serverHost,
 		Port:      serverPort,
 	}
 

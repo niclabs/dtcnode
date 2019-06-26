@@ -51,7 +51,10 @@ func (server *Server) Listen() {
 				break
 			}
 			log.Printf("Saving keyshare for keyid=%s", keyID)
-			server.SaveKey(keyID, keyShare, keyMeta)
+			if err := server.SaveKey(keyID, keyShare, keyMeta); err != nil {
+				log.Printf("Error with key saving: %s", err)
+				break
+			}
 			log.Printf("Keyshare saved for keyid=%s", keyID)
 		case message.AskForSigShare:
 			if len(msg.Data) != 2 {
@@ -95,7 +98,7 @@ func (server *Server) Listen() {
 	}
 }
 
-func (server *Server) SaveKey(id string, keyShare *tcrsa.KeyShare, keyMeta *tcrsa.KeyMeta) {
+func (server *Server) SaveKey(id string, keyShare *tcrsa.KeyShare, keyMeta *tcrsa.KeyMeta) error {
 	key, ok := server.keys[id]
 	if !ok {
 		key = &Key{}
@@ -103,7 +106,7 @@ func (server *Server) SaveKey(id string, keyShare *tcrsa.KeyShare, keyMeta *tcrs
 	}
 	key.Meta = keyMeta
 	key.Share = keyShare
-	server.client.SaveConfigKeys()
+	return server.client.SaveConfigKeys()
 }
 
 type Key struct {

@@ -2,7 +2,7 @@ package main
 
 import (
 	"fmt"
-	config2 "github.com/niclabs/dtcnode/config"
+	"github.com/niclabs/dtcnode/config"
 	"github.com/pebbe/zmq4"
 	"github.com/spf13/viper"
 	"os"
@@ -19,13 +19,13 @@ func init() {
 }
 
 func main() {
-	var config config2.Config
-	err := viper.UnmarshalKey("config", &config)
+	var conf config.Config
+	err := viper.UnmarshalKey("conf", &conf)
 	if err != nil {
 		panic(err)
 	}
 
-	n, err := InitClient(&config)
+	n, err := InitClient(&conf)
 	if err != nil {
 		_, _ = fmt.Fprintf(os.Stderr, "error initializing client: %s", err)
 		return

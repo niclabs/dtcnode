@@ -24,6 +24,9 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
+	if conf.Host == "" || conf.PublicKey == "" || conf.PrivateKey == "" || conf.Server == nil || conf.Port == 0 {
+		panic(fmt.Errorf("missing fields in conf file"))
+	}
 
 	n, err := InitClient(&conf)
 	if err != nil {

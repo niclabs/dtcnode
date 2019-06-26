@@ -20,6 +20,8 @@ const (
 	NotInitializedError
 	DocSignError
 	SigShareEncodeError
+	// Internal Errors (I/O)
+	InternalError
 	// Invalid error number (keep at the end)
 	UnknownError = NodeError(1<<8 - 1)
 )
@@ -36,6 +38,7 @@ var ErrorToString = map[NodeError]string{
 	NotInitializedError:     "node not initialized with the server",
 	DocSignError:            "cannot sign the document",
 	SigShareEncodeError:     "cannot encode the signature to a message",
+	InternalError:           "internal input/output error",
 	UnknownError:            "unknown error",
 }
 

@@ -166,7 +166,7 @@ func (client *Client) SaveConfigKeys() error {
 			}
 		}
 	}
-	return viper.SafeWriteConfig()
+	return viper.WriteConfig()
 }
 
 func (client *Client) Listen() {

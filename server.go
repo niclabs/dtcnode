@@ -53,6 +53,7 @@ func (server *Server) Listen() {
 			log.Printf("Saving keyshare for keyid=%s", keyID)
 			if err := server.SaveKey(keyID, keyShare, keyMeta); err != nil {
 				log.Printf("Error with key saving: %s", err)
+				resp.Error = message.InternalError
 				break
 			}
 			log.Printf("Keyshare saved for keyid=%s", keyID)

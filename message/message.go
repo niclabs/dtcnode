@@ -6,11 +6,11 @@ import (
 
 // Message represents a generic message which is sent between server and nodes.
 type Message struct {
-	NodeID string // Identification for the sender node. It usually is the public key of the node.
-	ID     string // Random hex ID for the message. Useful to do follow ups
-	Type   Type   // Type of the message.
+	NodeID string    // Identification for the sender node. It usually is the public key of the node.
+	ID     string    // Random hex ID for the message. Useful to do follow ups
+	Type   Type      // Type of the message.
 	Error  NodeError // An error code. It is 0 if the message is ok.
-	Data   [][]byte // A list of byte arrays with the binary data of the message.
+	Data   [][]byte  // A list of byte arrays with the binary data of the message.
 }
 
 // FromBytes transforms a raw array of array of bytes into a message, or returns an error if it can't transform the message.

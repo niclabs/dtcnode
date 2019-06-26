@@ -3,7 +3,6 @@ package main
 import (
 	"fmt"
 	"github.com/niclabs/dtcnode/config"
-	"github.com/pebbe/zmq4"
 	"github.com/spf13/viper"
 	"os"
 )
@@ -15,7 +14,6 @@ func init() {
 	if err := viper.ReadInConfig(); err != nil {
 		panic(fmt.Errorf("config file not found! %v", err))
 	}
-	zmq4.AuthSetVerbose(true)
 }
 
 func main() {

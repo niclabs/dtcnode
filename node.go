@@ -144,7 +144,6 @@ func (client *Node) GetConnString() string {
 	return fmt.Sprintf("%s://%s:%d", TchsmProtocol, client.host, client.port)
 }
 
-
 // SaveConfigKeys saves the currently received keys into memory.
 func (client *Node) SaveConfigKeys() error {
 	client.configMutex.Lock()

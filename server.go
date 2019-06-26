@@ -13,12 +13,12 @@ import (
 // Server represents the connection with the Distributed TCHSM server.
 // It saves its connection values, its public key, and the keyshares and keymetainfo sent by the server.
 type Server struct {
-	host    string // IP where the server is listening.
-	port    uint16 // Port where the server is listening.
-	pubKey  string // Public key of the server. Used for SMQ CURVE auth.
-	keys    map[string]*Key // Dictionary with key shares created by this server.
-	client  *Node // A pointer to the node that manages this server subroutine.
-	socket  *zmq4.Socket // The output socket where the messages are sent to the server.
+	host    string                // IP where the server is listening.
+	port    uint16                // Port where the server is listening.
+	pubKey  string                // Public key of the server. Used for SMQ CURVE auth.
+	keys    map[string]*Key       // Dictionary with key shares created by this server.
+	client  *Node                 // A pointer to the node that manages this server subroutine.
+	socket  *zmq4.Socket          // The output socket where the messages are sent to the server.
 	channel chan *message.Message // An internal channel where the main routine sends the messages for this server.
 }
 
@@ -124,5 +124,3 @@ func (server *Server) SaveKey(id string, keyShare *tcrsa.KeyShare, keyMeta *tcrs
 	key.Share = keyShare
 	return server.client.SaveConfigKeys()
 }
-
-

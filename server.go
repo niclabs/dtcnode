@@ -105,6 +105,7 @@ func (server *Server) SaveKey(id string, keyShare *tcrsa.KeyShare, keyMeta *tcrs
 		key = &Key{}
 		server.keys[id] = key
 	}
+	key.ID = id
 	key.Meta = keyMeta
 	key.Share = keyShare
 	return server.client.SaveConfigKeys()

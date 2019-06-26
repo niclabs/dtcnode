@@ -112,7 +112,7 @@ func InitClient(config *config.Config) (*Client, error) {
 	if err := in.Connect(server.GetConnString()); err != nil {
 		return nil, err
 	}
-	server.socket = in
+	server.socket = out
 	node.servers = append(node.servers, server)
 	node.socket = in
 	return node, nil

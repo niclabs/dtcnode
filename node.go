@@ -187,6 +187,7 @@ func (client *Client) Listen() {
 			continue
 		}
 		if server := client.FindServer(msg.NodeID); server != nil {
+			log.Printf("nodeID is valid, sending to channel", msg.NodeID)
 			server.channel <- msg
 		} else {
 			log.Printf("could not send message to server listener %s: not found", msg.NodeID)

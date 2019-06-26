@@ -2,6 +2,7 @@ package main
 
 import (
 	"crypto"
+	"encoding/base64"
 	"fmt"
 	"github.com/niclabs/dtcnode/message"
 	"github.com/niclabs/tcrsa"
@@ -76,7 +77,8 @@ func (server *Server) Listen() {
 				resp.Error = message.DocSignError
 				break
 			}
-			log.Printf("The document hash %s was signed succesfully with key %s as asked by server %s", doc, keyID, server.GetConnString())
+			b64doc := base64.StdEncoding.EncodeToString(doc)
+			log.Printf("The document %s was signed succesfully with key %s as asked by server %s", b64doc, keyID, server.GetConnString())
 			encodedSigShare, err := message.EncodeSigShare(sigShare)
 			if err != nil {
 				resp.Error = message.SigShareEncodeError

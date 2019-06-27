@@ -153,6 +153,7 @@ func (client *Node) SaveConfigKeys() error {
 		if serverConfig == nil {
 			return fmt.Errorf("error encoding keys: server config not found")
 		}
+		serverConfig.Keys = make([]*config.KeyConfig, 0)
 		for _, key := range server.keys {
 			keyShareBytes, err := message.EncodeKeyShare(key.Share)
 			if err != nil {
@@ -164,14 +165,11 @@ func (client *Node) SaveConfigKeys() error {
 			}
 			keyShareB64 := base64.StdEncoding.EncodeToString(keyShareBytes)
 			keyMetaB64 := base64.StdEncoding.EncodeToString(keyMetaBytes)
-			keyConfig := serverConfig.GetKeyByID(key.ID)
-			if keyConfig == nil {
-				serverConfig.Keys = append(serverConfig.Keys, &config.KeyConfig{
-					ID:          key.ID,
-					KeyMetaInfo: keyMetaB64,
-					KeyShare:    keyShareB64,
-				})
-			}
+			serverConfig.Keys = append(serverConfig.Keys, &config.KeyConfig{
+				ID:          key.ID,
+				KeyMetaInfo: keyMetaB64,
+				KeyShare:    keyShareB64,
+			})
 		}
 	}
 	viper.Set("config", client.config)

@@ -82,13 +82,14 @@ func (server *Server) Listen() {
 				break
 			}
 			doc := msg.Data[1]
-			log.Printf("Signing document hash %s with key %s as asked by server %s", doc, keyID, server.GetConnString())
+			b64doc := base64.StdEncoding.EncodeToString(doc)
+			log.Printf("Signing document hash %s with key %s as asked by server %s", b64doc, keyID, server.GetConnString())
 			sigShare, err := key.Share.Sign(doc, crypto.SHA256, key.Meta)
 			if err != nil {
 				resp.Error = message.DocSignError
 				break
 			}
-			b64doc := base64.StdEncoding.EncodeToString(doc)
+
 			log.Printf("The document %s was signed succesfully with key %s as asked by server %s", b64doc, keyID, server.GetConnString())
 			encodedSigShare, err := message.EncodeSigShare(sigShare)
 			if err != nil {

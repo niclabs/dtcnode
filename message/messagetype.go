@@ -7,6 +7,7 @@ const (
 	None Type = iota
 	SendKeyShare
 	AskForSigShare
+	DeleteKeyShare
 )
 
 // TypeToString transforms a message type into a string. Useful for debugging.
@@ -14,6 +15,7 @@ var TypeToString = map[Type]string{
 	None:           "Undefined type",
 	SendKeyShare:   "Send Key Share",
 	AskForSigShare: "Ask for Signature Share",
+	DeleteKeyShare: "Delete Key Share",
 }
 
 func (mType Type) String() string {

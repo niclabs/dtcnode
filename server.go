@@ -97,6 +97,20 @@ func (server *Server) Listen() {
 				break
 			}
 			resp.AddMessage(encodedSigShare)
+		case message.DeleteKeyShare:
+			log.Printf("Server %s is asking us to delete a KeyShare", server.GetConnString())
+			if len(msg.Data) != 1 { // keyID
+				resp.Error = message.InvalidMessageError
+				break
+			}
+			keyID := string(msg.Data[0])
+			log.Printf("Deleting keyshare for keyid=%s", keyID)
+			if err := server.DeleteKey(keyID); err != nil {
+				log.Printf("Error with key saving: %s", err)
+				resp.Error = message.InternalError
+				break
+			}
+			log.Printf("Keyshare deleted for keyid=%s", keyID)
 		default:
 			log.Printf("invalid message received from server %s", server.GetConnString())
 
@@ -123,5 +137,11 @@ func (server *Server) SaveKey(id string, keyShare *tcrsa.KeyShare, keyMeta *tcrs
 	key.ID = id
 	key.Meta = keyMeta
 	key.Share = keyShare
+	return server.client.SaveConfigKeys()
+}
+
+// SaveKey deletes a key from the array of the server and asks the node to save the new key array into the config file.
+func (server *Server) DeleteKey(id string) error {
+	delete(server.keys, id)
 	return server.client.SaveConfigKeys()
 }

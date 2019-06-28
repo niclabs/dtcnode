@@ -8,12 +8,13 @@ import (
 	"github.com/niclabs/tcrsa"
 	"github.com/pebbe/zmq4"
 	"log"
+	"net"
 )
 
 // Server represents the connection with the Distributed TCHSM server.
 // It saves its connection values, its public key, and the keyshares and keymetainfo sent by the server.
 type Server struct {
-	host    string                // IP where the server is listening.
+	host    *net.IPAddr           // IP where the server is listening.
 	port    uint16                // Port where the server is listening.
 	pubKey  string                // Public key of the server. Used for SMQ CURVE auth.
 	keys    map[string]*Key       // Dictionary with key shares created by this server.

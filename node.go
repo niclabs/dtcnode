@@ -9,6 +9,7 @@ import (
 	"github.com/pebbe/zmq4"
 	"github.com/spf13/viper"
 	"log"
+	"net"
 	"sync"
 )
 
@@ -22,7 +23,7 @@ const TchsmProtocol = "tcp"
 type Node struct {
 	privKey     string         // The private key for the node, used in ZMQ CURVE Auth.
 	pubKey      string         // The public key for the node, used in ZMQ CURVE Auth.
-	host        string         // A string representing the IP the node is going to use to listen to requests.
+	host        *net.IPAddr         // A string representing the IP the node is going to use to listen to requests.
 	port        uint16         // a int representing the port the node is going to use to listen to requests
 	config      *config.Config // A pointer to the struct which saves the configuration of the node.
 	context     *zmq4.Context  // The context used by zmq connections.
@@ -33,11 +34,14 @@ type Node struct {
 
 // InitNode inits the node using the configuration provided. Returns a started node or an error if the function fails.
 func InitNode(config *config.Config) (*Node, error) {
-
+	ip, err := net.ResolveIPAddr("ip", config.Host)
+	if err != nil {
+		return nil, err
+	}
 	node := &Node{
 		pubKey:  config.PublicKey,
 		privKey: config.PrivateKey,
-		host:    config.Host,
+		host:    ip,
 		port:    config.Port,
 		config:  config,
 		servers: make([]*Server, 0),
@@ -48,8 +52,11 @@ func InitNode(config *config.Config) (*Node, error) {
 		return nil, err
 	}
 	node.context = context
-
-	zmq4.AuthAllow(TchsmDomain, config.GetServerIPs()...)
+	ips, err := config.GetServerIPs()
+	if err != nil {
+		return nil, err
+	}
+	zmq4.AuthAllow(TchsmDomain, ips...)
 	zmq4.AuthCurveAdd(TchsmDomain, config.GetServerPubKeys()...)
 
 	in, err := context.NewSocket(zmq4.ROUTER)
@@ -68,9 +75,14 @@ func InitNode(config *config.Config) (*Node, error) {
 	node.socket = in
 
 	serverConfig := config.Server
+
+	serverIP, err := net.ResolveIPAddr("ip", serverConfig.Host)
+	if err != nil {
+		return nil, err
+	}
 	server := &Server{
 		pubKey:  serverConfig.PublicKey,
-		host:    serverConfig.Host,
+		host:    serverIP,
 		port:    serverConfig.Port,
 		client:  node,
 		channel: make(chan *message.Message),

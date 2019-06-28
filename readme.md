@@ -14,8 +14,8 @@ This node is used in our implementation of [PKCS11-Compatible DTC Library with Z
 1. If you need a keypair for your server, you can use `gencurve` executable (build it executing `go build` in `gencurve` folder) to create a new keypair.
 1. Build the go project in the folder `genconfig` and execute `genconfig` with the following arguments: 
  1. `n` as the node IP and listening port, with an `:` between both values. _eg: 192.168.0.20:2030_
- 1. `s`as the server IP and listening port, with an `:`between both values. _eg: 192.168.0.4:2030_
- 1. `k`as the server public key in Base85 encoding format.
+ 1. `s` as the server IP and listening port, with an `:` between both values. _eg: 192.168.0.4:2030_
+ 1. `k` as the server public key in Base85 encoding format.
 1. Copy the configuration to the current directory, or to `/etc/dtc/config.yaml`.
 1. Launch the node executing `./dtcnode`.
 

@@ -90,6 +90,11 @@ func (server *Server) Listen() {
 				resp.Error = message.DocSignError
 				break
 			}
+			// Verify sigshare locally
+			if err := sigShare.Verify(doc, key.Meta); err != nil {
+				resp.Error = message.DocSignError
+				break
+			}
 
 			log.Printf("The document %s was signed succesfully with key %s as asked by server %s", b64doc, keyID, server.GetConnString())
 			encodedSigShare, err := message.EncodeSigShare(sigShare)
@@ -118,7 +123,7 @@ func (server *Server) Listen() {
 			resp.Error = message.InvalidMessageError
 		}
 		if resp.Error != message.Ok {
-			log.Printf("%s", resp.Error.Error())
+			log.Printf("Error processing message: %s", resp.Error.Error())
 		}
 		log.Printf("sending response to server %s", server.GetConnString())
 		if _, err := server.socket.SendMessage(resp.GetBytesLists()...); err != nil {

@@ -7,8 +7,9 @@ This node is used in our implementation of [PKCS11-Compatible DTC Library with Z
 
 # Installation
 
-1. Make sure you have ZMQ 4.0 and CZMQ 4.0 or greater installed on your node machine. Also, you will need to have Golang 1.12 or greater to compile the project.
-1. Other packages you need to install on your system are `pkgconfig`, `gcc` and `musl-dev`. They are used in cgo compilation (ZMQ requires them). You can see a config example in Alpine Linux in the `Dockerfile` of [DTC `integration_test` folder](https://github.com/niclabs/dtc).
+1. Make sure you have ZMQ 4.0 and CZMQ 4.0 or greater installed on your node machine. Also, you will need to have Golang 1.12 or greater to compile the project. 
+
+1. Other packages you need to install on your system are `pkgconfig`, `gcc` and `musl-dev`. They are used in cgo compilation (ZMQ requires them). You can see a config example for Debian Buster in the `Dockerfile` of [DTC `integration_test` folder](https://github.com/niclabs/dtc).
 1. Clone this repository.
 1. Execute `go mod tidy` to download the dependencies of this project.
 1. Build the project executing `go build` in the root of the project. This will create a `dtcnode` executable.
@@ -44,3 +45,12 @@ To build `gencurve`, you must execute `go mod tidy` and then `go build`.
 It has no arguments.
 
 **Example** `gencurve`
+
+
+## Docker Tests
+
+The `docker-compose` file on `docker` folder is useful to test the DTC library with nodes deployed on the same machine. Assuming that `docker` and `docker-compose` are already installed, you need to start the containers with:
+
+```bash
+docker-compose up
+```

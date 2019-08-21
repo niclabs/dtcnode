@@ -1,4 +1,4 @@
-FROM golang:alpine
+FROM golang:buster
 
 MAINTAINER Eduardo Riveros<eduardo@niclabs.cl>
 
@@ -7,19 +7,19 @@ ENV DTC_SERVER 0.0.0.0:3030
 ENV DTC_PK changemeoriwillnotwork
 
 WORKDIR /
-RUN apk add zeromq-dev czmq-dev git pkgconfig gcc musl-dev
-RUN git clone https://github.com/niclabs/dtcnode --branch v1.1.0
+RUN apt update
+RUN apt -y install libzmq3-dev libczmq-dev build-essential musl-dev
+
+RUN git clone https://github.com/niclabs/dtcnode --branch master
 
 WORKDIR /dtcnode
-RUN go mod tidy
+RUN go mod tidy -v
 RUN go build
 
 WORKDIR /dtcnode/genconfig
-RUN go mod tidy
+RUN go mod tidy -v
 RUN go build
 
 RUN mkdir /etc/dtcnode
-
-RUN apk del git pkgconfig gcc musl-dev
 
 CMD /dtcnode/genconfig/genconfig -n $DTC_NODE -s $DTC_SERVER -k $DTC_PK -o /etc/dtcnode/config.yaml && /dtcnode/dtcnode

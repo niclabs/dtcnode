@@ -10,7 +10,7 @@ WORKDIR /
 RUN apt update
 RUN apt -y install libzmq3-dev libczmq-dev build-essential musl-dev
 
-RUN git clone https://github.com/niclabs/dtcnode --branch master
+RUN git clone https://github.com/niclabs/dtcnode --branch reqsocket
 
 WORKDIR /dtcnode
 RUN go mod tidy -v

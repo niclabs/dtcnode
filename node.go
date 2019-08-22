@@ -8,7 +8,6 @@ import (
 	"github.com/niclabs/tcrsa"
 	"github.com/pebbe/zmq4"
 	"github.com/spf13/viper"
-	"log"
 	"net"
 	"sync"
 )
@@ -23,11 +22,10 @@ const TchsmProtocol = "tcp"
 type Node struct {
 	privKey     string         // The private key for the node, used in ZMQ CURVE Auth.
 	pubKey      string         // The public key for the node, used in ZMQ CURVE Auth.
-	host        *net.IPAddr         // A string representing the IP the node is going to use to listen to requests.
+	host        *net.IPAddr    // A string representing the IP the node is going to use to listen to requests.
 	port        uint16         // a int representing the port the node is going to use to listen to requests
 	config      *config.Config // A pointer to the struct which saves the configuration of the node.
 	context     *zmq4.Context  // The context used by zmq connections.
-	socket      *zmq4.Socket   //  The socket used to receive messages.
 	servers     []*Server      // A list of servers. Currently the configuration allows only one server at a time.
 	configMutex sync.Mutex     // A mutex used for config editing.
 }
@@ -59,7 +57,7 @@ func InitNode(config *config.Config) (*Node, error) {
 	zmq4.AuthAllow(TchsmDomain, ips...)
 	zmq4.AuthCurveAdd(TchsmDomain, config.GetServerPubKeys()...)
 
-	in, err := context.NewSocket(zmq4.ROUTER)
+	in, err := context.NewSocket(zmq4.REP)
 	if err != nil {
 		return nil, err
 	}
@@ -72,7 +70,6 @@ func InitNode(config *config.Config) (*Node, error) {
 	if err := in.Bind(node.GetConnString()); err != nil {
 		return nil, err
 	}
-	node.socket = in
 
 	serverConfig := config.Server
 
@@ -85,7 +82,6 @@ func InitNode(config *config.Config) (*Node, error) {
 		host:    serverIP,
 		port:    serverConfig.Port,
 		client:  node,
-		channel: make(chan *message.Message),
 		keys:    make(map[string]*Key, len(serverConfig.Keys)),
 	}
 
@@ -117,20 +113,6 @@ func InitNode(config *config.Config) (*Node, error) {
 		}
 	}
 
-	out, err := context.NewSocket(zmq4.DEALER)
-	if err != nil {
-		return nil, err
-	}
-	if err := out.SetIdentity(node.GetID()); err != nil {
-		return nil, err
-	}
-	if err := out.ClientAuthCurve(serverConfig.PublicKey, node.pubKey, node.privKey); err != nil {
-		return nil, err
-	}
-	if err := out.Connect(server.GetConnString()); err != nil {
-		return nil, err
-	}
-	server.socket = out
 	node.servers = append(node.servers, server)
 
 	return node, nil
@@ -192,26 +174,5 @@ func (client *Node) SaveConfigKeys() error {
 func (client *Node) Listen() {
 	for _, server := range client.servers {
 		go server.Listen()
-	}
-
-	for {
-		rawMsg, err := client.socket.RecvMessageBytes(0)
-		if err != nil {
-			log.Printf("%s", message.ReceiveMessageError.ComposeError(err))
-			continue
-		}
-		log.Printf("message from client %s", rawMsg[0])
-		log.Printf("parsing message")
-		msg, err := message.FromBytes(rawMsg)
-		if err != nil {
-			log.Printf("%s", message.ParseMessageError.ComposeError(err))
-			continue
-		}
-		if server := client.FindServer(msg.NodeID); server != nil {
-			log.Printf("nodeID %s is valid, sending to channel", msg.NodeID)
-			server.channel <- msg
-		} else {
-			log.Printf("could not send message to server listener %s: not found", msg.NodeID)
-		}
 	}
 }

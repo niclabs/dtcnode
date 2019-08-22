@@ -20,7 +20,6 @@ type Server struct {
 	keys    map[string]*Key       // Dictionary with key shares created by this server.
 	client  *Node                 // A pointer to the node that manages this server subroutine.
 	socket  *zmq4.Socket          // The output socket where the messages are sent to the server.
-	channel chan *message.Message // An internal channel where the main routine sends the messages for this server.
 }
 
 // Key represents a keyshare managed by the node and used by the server for signing documents.
@@ -43,8 +42,22 @@ func (server *Server) GetConnString() string {
 // Listen is the subroutine that keeps waiting for messages on its channel. Then it acts depending on each message.
 func (server *Server) Listen() {
 	log.Printf("Listening messages from server %s in %s", server.GetConnString(), server.client.GetConnString())
-	for msg := range server.channel {
+	for {
+		rawMsg, err := server.socket.RecvMessageBytes(0)
+		if err != nil {
+			log.Printf("%s", message.ReceiveMessageError.ComposeError(err))
+			continue
+		}
+		log.Printf("message from client %s", rawMsg[0])
+		log.Printf("parsing message")
+		msg, err := message.FromBytes(rawMsg)
+		if err != nil {
+			log.Printf("%s", message.ParseMessageError.ComposeError(err))
+			continue
+		}
+
 		resp := msg.CopyWithoutData(message.Ok)
+
 		switch msg.Type {
 		case message.SendKeyShare:
 			log.Printf("Server %s is sending us a new KeyShare", server.GetConnString())

@@ -1,7 +1,9 @@
 version: '3'
 services:
   node1:
-    build: .
+    build:
+      context: ../../
+      dockerfile: ./dtcnode/docker/Dockerfile
     env_file:
       - ./dtcnode.env
     volumes:
@@ -9,7 +11,9 @@ services:
     ports:
       - "9871:2030"
   node2:
-    build: .
+    build:
+      context: ../../
+      dockerfile: ./dtcnode/docker/Dockerfile
     env_file:
       - ./dtcnode.env
     volumes:
@@ -17,7 +21,9 @@ services:
     ports:
       - "9873:2030"
   node3:
-    build: .
+    build:
+      context: ../../
+      dockerfile: ./dtcnode/docker/Dockerfile
     env_file:
       - ./dtcnode.env
     volumes:
@@ -25,7 +31,9 @@ services:
     ports:
       - "9875:2030"
   node4:
-    build: .
+    build:
+      context: ../../
+      dockerfile: ./dtcnode/docker/Dockerfile
     env_file:
       - ./dtcnode.env
     volumes:
@@ -33,7 +41,9 @@ services:
     ports:
       - "9877:2030"
   node5:
-    build: .
+    build:
+      context: ../../
+      dockerfile: ./dtcnode/docker/Dockerfile
     env_file:
       - ./dtcnode.env
     volumes:

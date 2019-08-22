@@ -28,6 +28,7 @@ type Node struct {
 	context     *zmq4.Context  // The context used by zmq connections.
 	servers     []*Server      // A list of servers. Currently the configuration allows only one server at a time.
 	configMutex sync.Mutex     // A mutex used for config editing.
+	socket      *zmq4.Socket   // The socket where the messages are received and sent to the server.
 }
 
 // InitNode inits the node using the configuration provided. Returns a started node or an error if the function fails.
@@ -57,17 +58,19 @@ func InitNode(config *config.Config) (*Node, error) {
 	zmq4.AuthAllow(TchsmDomain, ips...)
 	zmq4.AuthCurveAdd(TchsmDomain, config.GetServerPubKeys()...)
 
-	in, err := context.NewSocket(zmq4.REP)
+	s, err := context.NewSocket(zmq4.ROUTER)
 	if err != nil {
 		return nil, err
 	}
-	if err := in.SetIdentity(node.GetID()); err != nil {
+	node.socket = s
+
+	if err := node.socket.SetIdentity(node.GetID()); err != nil {
 		return nil, err
 	}
-	if err := in.ServerAuthCurve(TchsmDomain, node.privKey); err != nil {
+	if err := node.socket.ServerAuthCurve(TchsmDomain, node.privKey); err != nil {
 		return nil, err
 	}
-	if err := in.Bind(node.GetConnString()); err != nil {
+	if err := node.socket.Bind(node.GetConnString()); err != nil {
 		return nil, err
 	}
 
@@ -78,11 +81,10 @@ func InitNode(config *config.Config) (*Node, error) {
 		return nil, err
 	}
 	server := &Server{
-		pubKey:  serverConfig.PublicKey,
-		host:    serverIP,
-		port:    serverConfig.Port,
-		client:  node,
-		keys:    make(map[string]*Key, len(serverConfig.Keys)),
+		pubKey: serverConfig.PublicKey,
+		host:   serverIP,
+		client: node,
+		keys:   make(map[string]*Key, len(serverConfig.Keys)),
 	}
 
 	for _, key := range serverConfig.Keys {
@@ -175,4 +177,5 @@ func (client *Node) Listen() {
 	for _, server := range client.servers {
 		go server.Listen()
 	}
+	select {}
 }

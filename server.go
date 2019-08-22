@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"github.com/niclabs/dtcnode/message"
 	"github.com/niclabs/tcrsa"
-	"github.com/pebbe/zmq4"
 	"log"
 	"net"
 )
@@ -14,12 +13,10 @@ import (
 // Server represents the connection with the Distributed TCHSM server.
 // It saves its connection values, its public key, and the keyshares and keymetainfo sent by the server.
 type Server struct {
-	host    *net.IPAddr           // IP where the server is listening.
-	port    uint16                // Port where the server is listening.
-	pubKey  string                // Public key of the server. Used for SMQ CURVE auth.
-	keys    map[string]*Key       // Dictionary with key shares created by this server.
-	client  *Node                 // A pointer to the node that manages this server subroutine.
-	socket  *zmq4.Socket          // The output socket where the messages are sent to the server.
+	host   *net.IPAddr     // IP where the server is listening.
+	pubKey string          // Public key of the server. Used for SMQ CURVE auth.
+	keys   map[string]*Key // Dictionary with key shares created by this server.
+	client *Node           // A pointer to the node that manages this server subroutine.
 }
 
 // Key represents a keyshare managed by the node and used by the server for signing documents.
@@ -36,14 +33,14 @@ func (server *Server) GetID() string {
 
 // GetConnString returns the string that is used for connecting to the server.
 func (server *Server) GetConnString() string {
-	return fmt.Sprintf("%s://%s:%d", TchsmProtocol, server.host, server.port)
+	return fmt.Sprintf("%s://%s", TchsmProtocol, server.host)
 }
 
 // Listen is the subroutine that keeps waiting for messages on its channel. Then it acts depending on each message.
 func (server *Server) Listen() {
-	log.Printf("Listening messages from server %s in %s", server.GetConnString(), server.client.GetConnString())
+	log.Printf("Listening messages in %s", server.client.GetConnString())
 	for {
-		rawMsg, err := server.socket.RecvMessageBytes(0)
+		rawMsg, err := server.client.socket.RecvMessageBytes(0)
 		if err != nil {
 			log.Printf("%s", message.ReceiveMessageError.ComposeError(err))
 			continue
@@ -139,7 +136,7 @@ func (server *Server) Listen() {
 			log.Printf("Error processing message: %s", resp.Error.Error())
 		}
 		log.Printf("sending response to server %s", server.GetConnString())
-		if _, err := server.socket.SendMessage(resp.GetBytesLists()...); err != nil {
+		if _, err := server.client.socket.SendMessage(resp.GetBytesLists()...); err != nil {
 			log.Printf("%s", err.Error())
 		}
 		log.Printf("A response to server %s was sent", server.GetConnString())

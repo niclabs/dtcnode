@@ -15,7 +15,6 @@ type Config struct {
 type ServerConfig struct {
 	PublicKey string       // Server public key
 	Host      string       // Server hostname or IP
-	Port      uint16       // Server port
 	Keys      []*KeyConfig // List of keys
 }
 

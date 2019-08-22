@@ -16,7 +16,7 @@ type Message struct {
 // FromBytes transforms a raw array of array of bytes into a message, or returns an error if it can't transform the message.
 func FromBytes(rawMsg [][]byte) (*Message, error) {
 	if len(rawMsg) < 4 { // header is dealer ID, rest is message struct.
-		return nil, fmt.Errorf("bad byte array length")
+		return nil, fmt.Errorf("bad byte array length: %d instead of 4", len(rawMsg))
 	}
 	return &Message{
 		NodeID: string(rawMsg[0]), // Provided by
@@ -46,7 +46,6 @@ func NewMessage(rType Type, nodeID string, msgs ...[]byte) (*Message, error) {
 // GetBytesLists transforms a message into an array of arrays of bytes, useful to send the message to the other end.
 func (message *Message) GetBytesLists() []interface{} {
 	b := []interface{}{
-		[]byte(message.NodeID),
 		[]byte(message.ID),
 		[]byte{byte(message.Type)},
 		[]byte{byte(message.Error)},

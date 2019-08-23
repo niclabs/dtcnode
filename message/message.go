@@ -62,7 +62,7 @@ func (message *Message) AddMessage(data []byte) {
 	message.Data = append(message.Data, data)
 }
 
-// CopyWithoutData creates a new message with some fields copied from another message. This method is useful to create replies quickly. It receives a default status code as argument. This status code is used in the new message.
+// CopyWithoutData creates a new message with some fields copied from another message. This method is useful to create replies quickly. It receives a default status code as argument and the new Node ID.
 func (message *Message) CopyWithoutData(ourID string, status NodeError) *Message {
 	return &Message{
 		NodeID: ourID,
@@ -78,9 +78,7 @@ func (message *Message) Ok(message2 *Message, minDataLen int) error {
 	if message.ID != message2.ID {
 		return fmt.Errorf("ID mismatch: got: %s, expected: %s", message.ID, message2.ID)
 	}
-	if message.NodeID != message2.NodeID {
-		return fmt.Errorf("node ID mismatch: got: %s, expected: %s", message.NodeID, message2.NodeID)
-	}
+	// Note: NodeID should not be the same as the response
 	if message.Type != message2.Type {
 		return fmt.Errorf("type mismatch: got: %s, expected: %s", message.Type, message2.Type)
 	}

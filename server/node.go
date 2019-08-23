@@ -8,6 +8,7 @@ import (
 	"github.com/niclabs/tcrsa"
 	"github.com/pebbe/zmq4"
 	"github.com/spf13/viper"
+	"log"
 	"net"
 	"sync"
 )
@@ -26,9 +27,13 @@ type Node struct {
 	port        uint16         // a int representing the port the node is going to use to listen to requests
 	config      *config.Config // A pointer to the struct which saves the configuration of the node.
 	context     *zmq4.Context  // The context used by zmq connections.
-	servers     []*Server      // A list of servers. Currently the configuration allows only one server at a time.
+	servers     []*Client      // A list of servers. Currently the configuration allows only one server at a time.
 	configMutex sync.Mutex     // A mutex used for config editing.
 	socket      *zmq4.Socket   // The socket where the messages are received and sent to the server.
+}
+
+func init() {
+	zmq4.AuthSetVerbose(true)
 }
 
 // InitNode inits the node using the configuration provided. Returns a started node or an error if the function fails.
@@ -43,20 +48,19 @@ func InitNode(config *config.Config) (*Node, error) {
 		host:    ip,
 		port:    config.Port,
 		config:  config,
-		servers: make([]*Server, 0),
+		servers: make([]*Client, 0),
 	}
-
 	context, err := zmq4.NewContext()
 	if err != nil {
 		return nil, err
 	}
 	node.context = context
-	ips, err := config.GetServerIPs()
+	ips, err := config.GetClientIPs()
 	if err != nil {
 		return nil, err
 	}
 	zmq4.AuthAllow(TchsmDomain, ips...)
-	zmq4.AuthCurveAdd(TchsmDomain, config.GetServerPubKeys()...)
+	zmq4.AuthCurveAdd(TchsmDomain, config.GetClientPubKeys()...)
 
 	s, err := context.NewSocket(zmq4.ROUTER)
 	if err != nil {
@@ -70,20 +74,21 @@ func InitNode(config *config.Config) (*Node, error) {
 	if err := node.socket.ServerAuthCurve(TchsmDomain, node.privKey); err != nil {
 		return nil, err
 	}
+	log.Printf("Listening messages in %s", node.GetConnString())
 	if err := node.socket.Bind(node.GetConnString()); err != nil {
 		return nil, err
 	}
 
-	serverConfig := config.Server
+	serverConfig := config.Client
 
 	serverIP, err := net.ResolveIPAddr("ip", serverConfig.Host)
 	if err != nil {
 		return nil, err
 	}
-	server := &Server{
+	server := &Client{
 		pubKey: serverConfig.PublicKey,
 		host:   serverIP,
-		client: node,
+		node:   node,
 		keys:   make(map[string]*Key, len(serverConfig.Keys)),
 	}
 
@@ -126,7 +131,7 @@ func (client *Node) GetID() string {
 }
 
 // FindServer returns a server with the provided ID, or nil if it doesn't exist.
-func (client *Node) FindServer(name string) *Server {
+func (client *Node) FindServer(name string) *Client {
 	for _, server := range client.servers {
 		if server.pubKey == name {
 			return server
@@ -135,7 +140,7 @@ func (client *Node) FindServer(name string) *Server {
 	return nil
 }
 
-// GetConnString returns the string that is used to bind the client to a port.
+// GetConnString returns the string that is used to bind the node to a port.
 func (client *Node) GetConnString() string {
 	return fmt.Sprintf("%s://%s:%d", TchsmProtocol, client.host, client.port)
 }
@@ -145,7 +150,7 @@ func (client *Node) SaveConfigKeys() error {
 	client.configMutex.Lock()
 	defer client.configMutex.Unlock()
 	for _, server := range client.servers {
-		serverConfig := client.config.GetServerByID(server.GetID())
+		serverConfig := client.config.GetClientByID(server.GetID())
 		if serverConfig == nil {
 			return fmt.Errorf("error encoding keys: server config not found")
 		}

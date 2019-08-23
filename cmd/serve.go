@@ -1,20 +1,14 @@
 package cmd
 
 import (
-	"github.com/niclabs/dhsm-signer/signer"
+	"github.com/niclabs/dtcnode/server"
 	"github.com/spf13/cobra"
-	"os"
 )
 
-func init() {
-	runCmd.Flags().StringP("file", "f", "", "Full path to zone file to be verified")
-	_ = runCmd.MarkFlagRequired("file")
-}
-
-var runCmd = &cobra.Command{
-	Use:   "client",
+var serveCmd = &cobra.Command{
+	Use:   "serve",
 	Short: "Runs the node",
 	RunE: func(cmd *cobra.Command, args []string) error {
-		return nil
+		return server.Serve()
 	},
 }

@@ -1,7 +1,6 @@
-package main
+package genconfig
 
 import (
-	"flag"
 	"fmt"
 	"github.com/niclabs/dtcnode/config"
 	"github.com/pebbe/zmq4"
@@ -10,19 +9,6 @@ import (
 	"strconv"
 	"strings"
 )
-
-var node string
-var server string
-var pk string
-var out string
-
-func init() {
-	flag.StringVar(&node, "n", "", "node ip and port")
-	flag.StringVar(&server, "s", "", "server ip and port")
-	flag.StringVar(&pk, "k", "", "base85 server public key")
-	flag.StringVar(&out, "o", "./config.yaml", "path where to output the config file (default: ./config.yaml)")
-	flag.Parse()
-}
 
 // GetHostAndPort splits a host and port string. Returns an error if something goes wrong.
 func GetHostAndPort(ipPort string) (ip string, port uint16, err error) {
@@ -41,18 +27,20 @@ func GetHostAndPort(ipPort string) (ip string, port uint16, err error) {
 	return
 }
 
-func main() {
-
+func GenerateConfig(node, client, pk, out string) error {
+	_, err := os.Stat(out)
+	if !os.IsNotExist(err) {
+		_, _ = fmt.Fprintf(os.Stderr, "File already exists: Skipping config creation.\n")
+		return nil
+	}
 	nodePK, nodeSK, err := zmq4.NewCurveKeypair()
 	if err != nil {
-		_, _ = fmt.Fprintf(os.Stderr, "could not generate curve key pair: %s\n", err)
-		return
+		return fmt.Errorf("could not generate curve key pair: %s\n", err)
 	}
 
 	nodeHost, nodePort, err := GetHostAndPort(node)
 	if err != nil {
-		_, _ = fmt.Fprintf(os.Stderr, "%s", err)
-		return
+		return fmt.Errorf("could not get host and port for the node: %s", err)
 	}
 
 	conf := config.Config{
@@ -62,31 +50,23 @@ func main() {
 		Port:       nodePort,
 	}
 
-	serverHost, serverPort, err := GetHostAndPort(server)
 	if err != nil {
-		_, _ = fmt.Fprintf(os.Stderr, "could not parse ip and port of servers: %s\n", err)
-		return
-	}
-	conf.Server = &config.ServerConfig{
-		PublicKey: pk,
-		Host:      serverHost,
-		Port:      serverPort,
+		return fmt.Errorf("could not parse ip and port of servers: %s\n", err)
 	}
 
-	// write config
+	conf.Client = &config.ClientConfig{
+		PublicKey: pk,
+		Host:      client,
+	}
+
 	v := viper.New()
 	v.Set("config", conf)
-	_, err = os.Stat(out)
-	if !os.IsNotExist(err) {
-		_, _ = fmt.Fprintf(os.Stderr, "error writing config file: file already exists\n")
-		return
-	}
 	err = v.WriteConfigAs(out)
 	if err != nil {
-		_, _ = fmt.Fprintf(os.Stderr, "cannot write config file: %s\n", err)
-		return
+		return fmt.Errorf("cannot write config file: %s\n", err)
 	}
 
 	_, _ = fmt.Fprintf(os.Stderr, "config file written successfully in %s\n", out)
-	_, _ = fmt.Fprintf(os.Stderr, "PUBLIC KEY: %s\n", pk)
+	_, _ = fmt.Fprintf(os.Stderr, "Public Key: %s\n", pk)
+	return nil
 }

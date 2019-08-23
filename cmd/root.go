@@ -7,20 +7,20 @@ import (
 )
 
 func init() {
-	rootCmd.AddCommand(signCmd)
-	rootCmd.AddCommand(verifyCmd)
-	rootCmd.AddCommand(resetKeysCmd)
+	rootCmd.AddCommand(genCurveCmd)
+	rootCmd.AddCommand(serveCmd)
+	rootCmd.AddCommand(genConfigCmd)
 	Log = log.New(os.Stderr, "", 0)
 }
 
 var Log *log.Logger
 
 var rootCmd = &cobra.Command{
-	Use:   "dhsm-signer",
-	Short: "Signs a DNS zone using a PKCS11 Device",
-	Long: `Allows to sign a DNS zone using a PKCS#11 device.
+	Use:   "dtcnode",
+	Short: "Executes a DTC Node",
+	Long: `Executes a DTC Node.
 	
-	For more information, visit "https://github.com/niclabs/dhsm-signer".`,
+	For more information, visit "https://github.com/niclabs/dtcnode".`,
 }
 
 func Execute() {

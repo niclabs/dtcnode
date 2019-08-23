@@ -1,36 +1,30 @@
 package cmd
 
 import (
-	"github.com/niclabs/dhsm-signer/signer"
+	"github.com/niclabs/dtcnode/genconfig"
 	"github.com/spf13/cobra"
 )
 
+var node string
+var client string
+var pk string
+var out string
+
 func init() {
-	resetKeysCmd.Flags().StringP("p11lib", "p", "", "Full path to PKCS11 lib file")
-	resetKeysCmd.Flags().StringP("user-key", "k", "1234", "HSM User Login Key (default is 1234)")
-	resetKeysCmd.Flags().StringP("key-label", "l", "dHSM-signer", "Label of HSM Signer Key")
-	_ = resetKeysCmd.MarkFlagRequired("p11lib")
+	genConfigCmd.Flags().StringVarP(&node, "node", "n", "0.0.0.0:2030", "node ip and port")
+	genConfigCmd.Flags().StringVarP(&client, "client", "c", "", "client ip")
+	genConfigCmd.Flags().StringVarP(&pk, "key", "k", "", "base85 client public key")
+	genConfigCmd.Flags().StringVarP(&out, "output", "o", "", "path where to output the config file (default: ./config.yaml)")
+	_ = genConfigCmd.MarkFlagRequired("client")
+	_ = genConfigCmd.MarkFlagRequired("key")
+	_ = genConfigCmd.MarkFlagRequired("output")
+
 }
 
-var resetKeysCmd = &cobra.Command{
-	Use:   "reset-keys",
-	Short: "Deletes all the keys registered in the HSM with specified key label",
+var genConfigCmd = &cobra.Command{
+	Use:   "generate-config",
+	Short: "Generates a configuration file",
 	RunE: func(cmd *cobra.Command, args []string) error {
-		p11lib, _ := cmd.Flags().GetString("p11lib")
-		key, _ := cmd.Flags().GetString("user-key")
-		label, _ := cmd.Flags().GetString("key-label")
-		if err := signer.FilesExist(p11lib); err != nil {
-			return err
-		}
-		s, err := signer.NewSession(p11lib, key, label, Log)
-		if err != nil {
-			return err
-		}
-		defer s.End()
-		if err := s.DestroyAllKeys(); err != nil {
-			return err
-		}
-		Log.Printf("All keys destroyed.")
-		return nil
+		return genconfig.GenerateConfig(node, client, pk, out)
 	},
 }

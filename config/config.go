@@ -8,36 +8,36 @@ type Config struct {
 	PrivateKey string        // Node private key
 	Host       string        // Node host
 	Port       uint16        // Node port
-	Server     *ServerConfig // List of servers
+	Client     *ClientConfig // List of servers
 }
 
-// ServerConfig represents a server configuration.
-type ServerConfig struct {
-	PublicKey string       // Server public key
-	Host      string       // Server hostname or IP
+// ClientConfig represents a client configuration.
+type ClientConfig struct {
+	PublicKey string       // Client public key
+	Host      string       // Client hostname or IP
 	Keys      []*KeyConfig // List of keys
 }
 
-// KeyConfig represents a key on a server.
+// KeyConfig represents a key share on the node.
 type KeyConfig struct {
 	ID          string // Key UUID
 	KeyShare    string // Keyshare
 	KeyMetaInfo string // Key Metainformation
 }
 
-// Returns a server, given its ID
-func (config *Config) GetServerByID(id string) *ServerConfig {
-	if config.Server.PublicKey == id {
-		return config.Server
+// Returns a client, given its ID
+func (config *Config) GetClientByID(id string) *ClientConfig {
+	if config.Client.PublicKey == id {
+		return config.Client
 	}
 	return nil
 }
 
 // Returns a list of IPs. If a server has a hostname instead of an IP, it resolves it.
-func (config *Config) GetServerIPs() ([]string, error) {
+func (config *Config) GetClientIPs() ([]string, error) {
 	ips := make([]string, 1)
 	// try to parse as IP
-	ip, err := net.ResolveIPAddr("ip", config.Server.Host)
+	ip, err := net.ResolveIPAddr("ip", config.Client.Host)
 	if err != nil {
 		return nil, err
 	}
@@ -46,14 +46,14 @@ func (config *Config) GetServerIPs() ([]string, error) {
 }
 
 // Returns the list of public keys of the servers
-func (config *Config) GetServerPubKeys() []string {
+func (config *Config) GetClientPubKeys() []string {
 	pubkeys := make([]string, 1)
-	pubkeys[0] = config.Server.PublicKey
+	pubkeys[0] = config.Client.PublicKey
 	return pubkeys
 }
 
 // Returns a key in a server, based on its ID
-func (serverConfig *ServerConfig) GetKeyByID(id string) *KeyConfig {
+func (serverConfig *ClientConfig) GetKeyByID(id string) *KeyConfig {
 	for _, key := range serverConfig.Keys {
 		if key.ID == id {
 			return key

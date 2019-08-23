@@ -1,4 +1,4 @@
-package main
+package server
 
 import (
 	"encoding/base64"
@@ -27,13 +27,13 @@ type Node struct {
 	port        uint16         // a int representing the port the node is going to use to listen to requests
 	config      *config.Config // A pointer to the struct which saves the configuration of the node.
 	context     *zmq4.Context  // The context used by zmq connections.
-	servers     []*Client      // A list of servers. Currently the configuration allows only one server at a time.
+	clients     []*Client      // A list of clients. Currently the configuration allows only one server at a time.
 	configMutex sync.Mutex     // A mutex used for config editing.
 	socket      *zmq4.Socket   // The socket where the messages are received and sent to the server.
 }
 
 func init() {
-	zmq4.AuthSetVerbose(true)
+	//zmq4.AuthSetVerbose(true)
 }
 
 // InitNode inits the node using the configuration provided. Returns a started node or an error if the function fails.
@@ -48,21 +48,22 @@ func InitNode(config *config.Config) (*Node, error) {
 		host:    ip,
 		port:    config.Port,
 		config:  config,
-		servers: make([]*Client, 0),
+		clients: make([]*Client, 0),
 	}
 	context, err := zmq4.NewContext()
 	if err != nil {
 		return nil, err
 	}
 	node.context = context
+	/*
 	ips, err := config.GetClientIPs()
 	if err != nil {
 		return nil, err
 	}
 	zmq4.AuthAllow(TchsmDomain, ips...)
 	zmq4.AuthCurveAdd(TchsmDomain, config.GetClientPubKeys()...)
-
-	s, err := context.NewSocket(zmq4.ROUTER)
+	*/
+	s, err := context.NewSocket(zmq4.REP)
 	if err != nil {
 		return nil, err
 	}
@@ -71,9 +72,11 @@ func InitNode(config *config.Config) (*Node, error) {
 	if err := node.socket.SetIdentity(node.GetID()); err != nil {
 		return nil, err
 	}
+	/*
 	if err := node.socket.ServerAuthCurve(TchsmDomain, node.privKey); err != nil {
 		return nil, err
 	}
+	*/
 	log.Printf("Listening messages in %s", node.GetConnString())
 	if err := node.socket.Bind(node.GetConnString()); err != nil {
 		return nil, err
@@ -120,19 +123,19 @@ func InitNode(config *config.Config) (*Node, error) {
 		}
 	}
 
-	node.servers = append(node.servers, server)
+	node.clients = append(node.clients, server)
 
 	return node, nil
 }
 
 // GetID returns the ID of the node.
-func (client *Node) GetID() string {
-	return client.pubKey
+func (node *Node) GetID() string {
+	return node.pubKey
 }
 
 // FindServer returns a server with the provided ID, or nil if it doesn't exist.
-func (client *Node) FindServer(name string) *Client {
-	for _, server := range client.servers {
+func (node *Node) FindServer(name string) *Client {
+	for _, server := range node.clients {
 		if server.pubKey == name {
 			return server
 		}
@@ -141,16 +144,16 @@ func (client *Node) FindServer(name string) *Client {
 }
 
 // GetConnString returns the string that is used to bind the node to a port.
-func (client *Node) GetConnString() string {
-	return fmt.Sprintf("%s://%s:%d", TchsmProtocol, client.host, client.port)
+func (node *Node) GetConnString() string {
+	return fmt.Sprintf("%s://%s:%d", TchsmProtocol, node.host, node.port)
 }
 
 // SaveConfigKeys saves the currently received keys into memory.
-func (client *Node) SaveConfigKeys() error {
-	client.configMutex.Lock()
-	defer client.configMutex.Unlock()
-	for _, server := range client.servers {
-		serverConfig := client.config.GetClientByID(server.GetID())
+func (node *Node) SaveConfigKeys() error {
+	node.configMutex.Lock()
+	defer node.configMutex.Unlock()
+	for _, server := range node.clients {
+		serverConfig := node.config.GetClientByID(server.GetID())
 		if serverConfig == nil {
 			return fmt.Errorf("error encoding keys: server config not found")
 		}
@@ -173,14 +176,11 @@ func (client *Node) SaveConfigKeys() error {
 			})
 		}
 	}
-	viper.Set("config", client.config)
+	viper.Set("config", node.config)
 	return viper.WriteConfig()
 }
 
 // Listen starts all the server listening subroutines, and waits for a message received in the input socket. It checks and parses the messages to Message objects and sends them to a channel, that is used by the subroutines.
-func (client *Node) Listen() {
-	for _, server := range client.servers {
-		go server.Listen()
-	}
-	select {}
+func (node *Node) Listen() {
+	node.clients[0].Listen()
 }

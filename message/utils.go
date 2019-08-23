@@ -16,7 +16,7 @@ func GetRandomHexString(len int) (string, error) {
 		fmt.Println("Error: ", err)
 		return "", err
 	}
-	return fmt.Sprintf("%X", b), nil
+	return fmt.Sprintf("%x", b), nil
 }
 
 // EncodeKeyShare encodes a keyshare struct into an array of bytes, using the golang gob encoder. It returns an error if it cannot encode the struct.

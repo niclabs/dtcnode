@@ -21,6 +21,7 @@ const TchsmProtocol = "tcp"
 
 // Node represents a node in the distributed TCHSM application. It saves zero or more keys from a configured server.
 type Node struct {
+	ID          string         // Node ID (random string)
 	privKey     string         // The private key for the node, used in ZMQ CURVE Auth.
 	pubKey      string         // The public key for the node, used in ZMQ CURVE Auth.
 	host        *net.IPAddr    // A string representing the IP the node is going to use to listen to requests.
@@ -42,7 +43,12 @@ func InitNode(config *config.Config) (*Node, error) {
 	if err != nil {
 		return nil, err
 	}
+	nodeID, err := message.GetRandomHexString(8)
+	if err != nil {
+		return nil, err
+	}
 	node := &Node{
+		ID:      nodeID,
 		pubKey:  config.PublicKey,
 		privKey: config.PrivateKey,
 		host:    ip,
@@ -50,6 +56,7 @@ func InitNode(config *config.Config) (*Node, error) {
 		config:  config,
 		clients: make([]*Client, 0),
 	}
+	log.Printf("Creating node with ID: %s", node.GetID())
 	context, err := zmq4.NewContext()
 	if err != nil {
 		return nil, err
@@ -130,7 +137,7 @@ func InitNode(config *config.Config) (*Node, error) {
 
 // GetID returns the ID of the node.
 func (node *Node) GetID() string {
-	return node.pubKey
+	return node.ID
 }
 
 // FindServer returns a server with the provided ID, or nil if it doesn't exist.

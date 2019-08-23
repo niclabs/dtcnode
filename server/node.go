@@ -33,7 +33,7 @@ type Node struct {
 }
 
 func init() {
-	//zmq4.AuthSetVerbose(true)
+	zmq4.AuthSetVerbose(true)
 }
 
 // InitNode inits the node using the configuration provided. Returns a started node or an error if the function fails.
@@ -55,14 +55,14 @@ func InitNode(config *config.Config) (*Node, error) {
 		return nil, err
 	}
 	node.context = context
-	/*
+
 	ips, err := config.GetClientIPs()
 	if err != nil {
 		return nil, err
 	}
 	zmq4.AuthAllow(TchsmDomain, ips...)
 	zmq4.AuthCurveAdd(TchsmDomain, config.GetClientPubKeys()...)
-	*/
+
 	s, err := context.NewSocket(zmq4.REP)
 	if err != nil {
 		return nil, err
@@ -72,11 +72,11 @@ func InitNode(config *config.Config) (*Node, error) {
 	if err := node.socket.SetIdentity(node.GetID()); err != nil {
 		return nil, err
 	}
-	/*
+
 	if err := node.socket.ServerAuthCurve(TchsmDomain, node.privKey); err != nil {
 		return nil, err
 	}
-	*/
+
 	log.Printf("Listening messages in %s", node.GetConnString())
 	if err := node.socket.Bind(node.GetConnString()); err != nil {
 		return nil, err
@@ -182,5 +182,8 @@ func (node *Node) SaveConfigKeys() error {
 
 // Listen starts all the server listening subroutines, and waits for a message received in the input socket. It checks and parses the messages to Message objects and sends them to a channel, that is used by the subroutines.
 func (node *Node) Listen() {
-	node.clients[0].Listen()
+	for _, client := range node.clients {
+		client.Listen()
+	}
+	select {}
 }

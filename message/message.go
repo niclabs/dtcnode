@@ -63,10 +63,10 @@ func (message *Message) AddMessage(data []byte) {
 }
 
 // CopyWithoutData creates a new message with some fields copied from another message. This method is useful to create replies quickly. It receives a default status code as argument. This status code is used in the new message.
-func (message *Message) CopyWithoutData(status NodeError) *Message {
+func (message *Message) CopyWithoutData(ourID string, status NodeError) *Message {
 	return &Message{
+		NodeID: ourID,
 		ID:     message.ID,
-		NodeID: message.NodeID,
 		Type:   message.Type,
 		Error:  status,
 		Data:   make([][]byte, 0),

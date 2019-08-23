@@ -159,13 +159,13 @@ func (node *Node) GetConnString() string {
 func (node *Node) SaveConfigKeys() error {
 	node.configMutex.Lock()
 	defer node.configMutex.Unlock()
-	for _, server := range node.clients {
-		serverConfig := node.config.GetClientByID(server.GetID())
+	for _, client := range node.clients {
+		serverConfig := node.config.GetClientByID(client.GetID())
 		if serverConfig == nil {
-			return fmt.Errorf("error encoding keys: server config not found")
+			return fmt.Errorf("error encoding keys: client config not found")
 		}
 		serverConfig.Keys = make([]*config.KeyConfig, 0)
-		for _, key := range server.keys {
+		for _, key := range client.keys {
 			keyShareBytes, err := message.EncodeKeyShare(key.Share)
 			if err != nil {
 				return fmt.Errorf("error encoding keys: %s", err)

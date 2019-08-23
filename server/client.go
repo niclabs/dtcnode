@@ -53,7 +53,7 @@ func (client *Client) Listen() {
 			continue
 		}
 
-		resp := msg.CopyWithoutData(message.Ok)
+		resp := msg.CopyWithoutData(client.node.GetID(), message.Ok)
 
 		switch msg.Type {
 		case message.SendKeyShare:

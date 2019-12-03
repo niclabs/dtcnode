@@ -1,4 +1,4 @@
-module github.com/niclabs/dtcnode
+module github.com/niclabs/dtcnode/v2
 
 go 1.12
 

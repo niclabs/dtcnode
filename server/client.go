@@ -4,7 +4,7 @@ import (
 	"crypto"
 	"encoding/base64"
 	"fmt"
-	"github.com/niclabs/dtcnode/message"
+	"github.com/niclabs/dtcnode/v2/message"
 	"github.com/niclabs/tcrsa"
 	"log"
 	"net"

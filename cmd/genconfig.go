@@ -1,7 +1,7 @@
 package cmd
 
 import (
-	"github.com/niclabs/dtcnode/genconfig"
+	"github.com/niclabs/dtcnode/v2/genconfig"
 	"github.com/spf13/cobra"
 )
 

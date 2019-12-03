@@ -2,7 +2,7 @@ package cmd
 
 import (
 	"fmt"
-	"github.com/niclabs/dtcnode/server"
+	"github.com/niclabs/dtcnode/v2/server"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )

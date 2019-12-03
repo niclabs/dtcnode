@@ -2,7 +2,7 @@ package genconfig
 
 import (
 	"fmt"
-	"github.com/niclabs/dtcnode/config"
+	"github.com/niclabs/dtcnode/v2/config"
 	"github.com/pebbe/zmq4"
 	"github.com/spf13/viper"
 	"os"

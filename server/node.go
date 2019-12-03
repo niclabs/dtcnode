@@ -3,8 +3,8 @@ package server
 import (
 	"encoding/base64"
 	"fmt"
-	"github.com/niclabs/dtcnode/config"
-	"github.com/niclabs/dtcnode/message"
+	"github.com/niclabs/dtcnode/v2/config"
+	"github.com/niclabs/dtcnode/v2/message"
 	"github.com/niclabs/tcrsa"
 	"github.com/pebbe/zmq4"
 	"github.com/spf13/viper"

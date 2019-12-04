@@ -1,6 +1,6 @@
 .idea/
 config.yaml
-/dtcnode
-/gencurve/gencurve
-/genconfig/genconfig
-/genconfig/config.yaml
+tests/dhsm-signer/dtc/config
+tests/dhsm-signer/dtcnode/config
+tests/pkcs11-test/config
+dtcnode

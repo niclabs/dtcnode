@@ -7,43 +7,43 @@ This node is used in our implementation of [PKCS11-Compatible DTC Library with Z
 
 # Installation
 
-1. Make sure you have ZMQ 4.0 and CZMQ 4.0 or greater installed on your node machine. Also, you will need to have Golang 1.12 or greater to compile the project. 
+# How to build
 
-1. Other packages you need to install on your system are `pkgconfig`, `gcc` and `musl-dev`. They are used in cgo compilation (ZMQ requires them). You can see a config example for Debian Buster in the `Dockerfile` of [DTC `integration_test` folder](https://github.com/niclabs/dtc).
-1. Clone this repository.
-1. Execute `go mod tidy` to download the dependencies of this project.
-1. Build the project executing `go build` in the root of the project. This will create a `dtcnode` executable.
-1. If you need a keypair for your server, you can use `dtcnode generate-curve` command to create it.
-1. execute `dtcnode generate-config` to create a config file. For more information about how to use this command, check at the end of this readme.
-1. Copy the configuration to the current directory, or to `/etc/dtcnode/config.yaml`.
-1. Launch the node executing `./dtcnode serve`.
+First, it's necessary to download all the requirements of the Go project. The following libraries should be installed in the systems which are going to use the library:
 
-# Creating Configuration and Key Pairs
+* libzmq v4 or greater (for zmq communication with the nodes)
+* libczmq (for zmq communication with the nodes)
+* gcc
+* Go (1.13.4 or higher)
 
-As mentioned in installation, the `dtcnode` utillity includes two useful commands related to the node confguration:
+for building the project as a library, you should execute the following command. It will produce a file named `dtcnode` that you can execute.
 
-## `dtcnode generate-config`
+`go build`
 
-`genconfig` generates a dtcnode configuration. 
+On Ubuntu 18.04 LTS, the commands to run to build are the following:
 
-It is used with the following arguments: 
- 1. `n` as the node IP and listening port, with an `:` between both values. _eg: 192.168.0.20:2030_
- 1. `c` as the client IP. _eg: 192.168.0.4_
- 1. `k` as the server public key in Base85 encoding format
- 1. `o` as the output location for the config file (by default is the current working directory).
+```bash
+# Install requirements
+sudo apt install libzmq3-dev libczmq-dev build-essential pkg-config
 
-**Example** `dtcnode generate-config -n 192.168.0.22:2030 -c 192.168.0.22 -k {0j3IXL0Jw:)K$b1@(1=<8z/joPM.c+EXVBMS>7$ -o ./config.yaml`
+# Download and install Go 1.13.4 (or higher) for Linux AMD 64 bit.
+wget https://dl.google.com/go/go1.13.4.linux-amd64.tar.gz
+sudo tar -C /usr/local -xzf go1.13.4.linux-amd64.tar.gz
 
-You can get more information executing `dtcnode generate-config help`.
+# ADD /usr/local/go to PATH
+export PATH=$PATH:/usr/local/go
 
-## `dtcnode generate-curve`
+# Clone and compile repository
+git clone https://github.com/niclabs/dtc
+cd dtc
+./build.sh
+```
 
- Prints to stdout a random public and private key usable on a ZMQ server or node.
+# Getting Configuration and Key Pairs
 
-It has no arguments.
-
-**Example** `dtcnode generate-curve`
-
+You should use the files generated with [dtcconfig](https://github.com/niclabs/dtcconfig) 
+when you built the [dHSM Library](https://github.com/niclabs/dtc). Copy the config corresponding to this node in
+/etc/dtcnode folder.
 
 ## Docker Tests
 

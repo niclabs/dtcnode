@@ -34,8 +34,8 @@ sudo tar -C /usr/local -xzf go1.13.4.linux-amd64.tar.gz
 export PATH=$PATH:/usr/local/go
 
 # Clone and compile repository
-git clone https://github.com/niclabs/dtc
-cd dtc
+git clone https://github.com/niclabs/dtcnode
+cd dtcnode
 ./build.sh
 ```
 

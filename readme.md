@@ -49,7 +49,4 @@ when you built the [dHSM Library](https://github.com/niclabs/dtc). Copy the conf
 
 The `docker-compose` file on `docker` folder is useful to test the DTC library with nodes deployed on the same machine. Assuming that `docker` and `docker-compose` are already installed, you need to start the containers with:
 
-```bash
-docker-compose build
-docker-compose up
-```
+`./docker/test.sh`

@@ -6,6 +6,7 @@ go run github.com/niclabs/dtcconfig rsa \
             -t 3 \
             -H "$(ip addr | grep 'global docker0' | awk '{print $2}' | sed sx/16xxg)" \
             -c "config.yaml" \
-            -k "config/"
+            -k "config/" \
+            -d "/tmp/dtc.sqlite3"
 docker-compose build
 docker-compose up

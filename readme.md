@@ -34,8 +34,8 @@ sudo tar -C /usr/local -xzf go1.13.4.linux-amd64.tar.gz
 export PATH=$PATH:/usr/local/go
 
 # Clone and compile repository
-git clone https://github.com/niclabs/dtc
-cd dtc
+git clone https://github.com/niclabs/dtcnode
+cd dtcnode
 ./build.sh
 ```
 
@@ -49,7 +49,4 @@ when you built the [dHSM Library](https://github.com/niclabs/dtc). Copy the conf
 
 The `docker-compose` file on `docker` folder is useful to test the DTC library with nodes deployed on the same machine. Assuming that `docker` and `docker-compose` are already installed, you need to start the containers with:
 
-```bash
-docker-compose build
-docker-compose up
-```
+`./docker/test.sh`

@@ -5,7 +5,7 @@ services:
       context: ../../
       dockerfile: ./dtcnode/docker/Dockerfile
     volumes:
-      - ./config/node_1/:/etc/dtcnode/
+      - ./config/node_0/:/etc/dtcnode/
     ports:
       - "9871:9871"
   node2:
@@ -13,7 +13,7 @@ services:
       context: ../../
       dockerfile: ./dtcnode/docker/Dockerfile
     volumes:
-      - ./config/node_2/:/etc/dtcnode/
+      - ./config/node_1/:/etc/dtcnode/
     ports:
       - "9873:9873"
   node3:
@@ -21,7 +21,7 @@ services:
       context: ../../
       dockerfile: ./dtcnode/docker/Dockerfile
     volumes:
-      - ./config/node_3/:/etc/dtcnode/
+      - ./config/node_2/:/etc/dtcnode/
     ports:
       - "9875:9875"
   node4:
@@ -29,7 +29,7 @@ services:
       context: ../../
       dockerfile: ./dtcnode/docker/Dockerfile
     volumes:
-      - ./config/node_4/:/etc/dtcnode/
+      - ./config/node_3/:/etc/dtcnode/
     ports:
       - "9877:9877"
   node5:
@@ -37,7 +37,7 @@ services:
       context: ../../
       dockerfile: ./dtcnode/docker/Dockerfile
     volumes:
-      - ./config/node_5/:/etc/dtcnode/
+      - ./config/node_4/:/etc/dtcnode/
     ports:
       - "9879:9879"
 

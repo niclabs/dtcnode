@@ -2,7 +2,7 @@ package main
 
 import (
 	"fmt"
-	"github.com/niclabs/dtcnode/v2/server"
+	"github.com/niclabs/dtcnode/v3/server"
 	"github.com/spf13/viper"
 	"log"
 	"os"

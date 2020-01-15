@@ -13,35 +13,31 @@ const (
 	ReceiveMessageError
 	ParseMessageError
 	SendResponseError
-	// Signature Reception Errors
-	AlreadyInitializedError
-	KeyShareDecodeError
-	KeyMetaDecodeError
+	// Encryption/Decryption errors
+	DecodingError
+	EncodingError
 	// Signing Errors
-	NotInitializedError
+	KeyNotFoundError
 	DocSignError
-	SigShareEncodeError
 	// Internal Errors (I/O)
 	InternalError
 	// Invalid error number (keep at the end)
 	UnknownError = NodeError(1<<8 - 1)
 )
 
-// ErrorToString maps the error codes to string messages. Useful for debugging.
+// ErrorToString maps the error codes to string message. Useful for debugging.
 var ErrorToString = map[NodeError]string{
-	Ok:                      "not an error",
-	InvalidMessageError:     "invalid message",
-	ReceiveMessageError:     "cannot receive message",
-	ParseMessageError:       "cannot parse received message",
-	SendResponseError:       "cannot send response",
-	AlreadyInitializedError: "Node was already initialized",
-	KeyShareDecodeError:     "cannot decode received Key Share",
-	KeyMetaDecodeError:      "cannot decode received Key Metainformation",
-	NotInitializedError:     "node not initialized with the server",
-	DocSignError:            "cannot sign the document",
-	SigShareEncodeError:     "cannot encode the signature to a message",
-	InternalError:           "internal input/output error",
-	UnknownError:            "unknown error",
+	Ok:                  "not an error",
+	InvalidMessageError: "invalid message",
+	ReceiveMessageError: "cannot receive message",
+	ParseMessageError:   "cannot parse received message",
+	SendResponseError:   "cannot send response",
+	EncodingError:       "cannot encode a struct to a message",
+	DecodingError:       "cannot decode received struct",
+	KeyNotFoundError:    "key not found in the node",
+	DocSignError:        "cannot sign the document",
+	InternalError:       "internal input/output error",
+	UnknownError:        "unknown error",
 }
 
 func (err NodeError) Error() string {

@@ -1,11 +1,9 @@
 package server
 
 import (
-	"encoding/base64"
 	"fmt"
-	"github.com/niclabs/dtcnode/v2/config"
-	"github.com/niclabs/dtcnode/v2/message"
-	"github.com/niclabs/tcrsa"
+	"github.com/niclabs/dtcnode/v3/config"
+	"github.com/niclabs/dtcnode/v3/message"
 	"github.com/pebbe/zmq4"
 	"github.com/spf13/viper"
 	"log"
@@ -19,7 +17,7 @@ const TchsmDomain = "tchsm"
 // The protocol used for the ZMQ connection. TCP is the best for this usage cases.
 const TchsmProtocol = "tcp"
 
-// Node represents a node in the distributed TCHSM application. It saves zero or more keys from a configured server.
+// Node represents a node in the distributed TCHSM application. It saves zero or more rsaKeys from a configured server.
 type Node struct {
 	ID          string         // Node ID (random string)
 	privKey     string         // The private key for the node, used in ZMQ CURVE Auth.
@@ -30,7 +28,7 @@ type Node struct {
 	context     *zmq4.Context  // The context used by zmq connections.
 	clients     []*Client      // A list of clients. Currently the configuration allows only one server at a time.
 	configMutex sync.Mutex     // A mutex used for config editing.
-	socket      *zmq4.Socket   // The socket where the messages are received and sent to the server.
+	socket      *zmq4.Socket   // The socket where the message are received and sent to the server.
 }
 
 func init() {
@@ -84,7 +82,7 @@ func InitNode(config *config.Config) (*Node, error) {
 		return nil, err
 	}
 
-	log.Printf("Listening messages in %s", node.GetConnString())
+	log.Printf("Listening message in %s", node.GetConnString())
 	if err := node.socket.Bind(node.GetConnString()); err != nil {
 		return nil, err
 	}
@@ -99,35 +97,16 @@ func InitNode(config *config.Config) (*Node, error) {
 		pubKey: serverConfig.PublicKey,
 		host:   serverIP,
 		node:   node,
-		keys:   make(map[string]*Key, len(serverConfig.Keys)),
 	}
 
-	for _, key := range serverConfig.Keys {
-		var keyShare *tcrsa.KeyShare
-		var keyMeta *tcrsa.KeyMeta
-		if key.KeyShare != "" && key.KeyMetaInfo != "" {
-			keyShareByte, err := base64.StdEncoding.DecodeString(key.KeyShare)
-			if err != nil {
-				return nil, err
-			}
-			keyShare, err = message.DecodeKeyShare(keyShareByte)
-			if err != nil {
-				return nil, err
-			}
-			keyMetaByte, err := base64.StdEncoding.DecodeString(key.KeyMetaInfo)
-			if err != nil {
-				return nil, err
-			}
-			keyMeta, err = message.DecodeKeyMeta(keyMetaByte)
-			if err != nil {
-				return nil, err
-			}
-		}
-		server.keys[key.ID] = &Key{
-			ID:    key.ID,
-			Meta:  keyMeta,
-			Share: keyShare,
-		}
+	server.rsa.keys, err = parseRSAKeys(serverConfig.RSA.Keys)
+	if err != nil {
+		return nil, err
+	}
+
+	server.ecdsa.keys, err = parseECDSAKeys(serverConfig.ECDSA.Keys)
+	if err != nil {
+		return nil, err
 	}
 
 	node.clients = append(node.clients, server)
@@ -155,39 +134,32 @@ func (node *Node) GetConnString() string {
 	return fmt.Sprintf("%s://%s:%d", TchsmProtocol, node.host, node.port)
 }
 
-// SaveConfigKeys saves the currently received keys into memory.
+// SaveConfigKeys saves the currently received rsaKeys and ecdsaKeys into memory.
 func (node *Node) SaveConfigKeys() error {
 	node.configMutex.Lock()
 	defer node.configMutex.Unlock()
+	var err error
 	for _, client := range node.clients {
 		serverConfig := node.config.GetClientByID(client.GetID())
 		if serverConfig == nil {
-			return fmt.Errorf("error encoding keys: client config not found")
+			return fmt.Errorf("error encoding rsaKeys: client config not found")
 		}
-		serverConfig.Keys = make([]*config.KeyConfig, 0)
-		for _, key := range client.keys {
-			keyShareBytes, err := message.EncodeKeyShare(key.Share)
-			if err != nil {
-				return fmt.Errorf("error encoding keys: %s", err)
-			}
-			keyMetaBytes, err := message.EncodeKeyMeta(key.Meta)
-			if err != nil {
-				return fmt.Errorf("error encoding keys: %s", err)
-			}
-			keyShareB64 := base64.StdEncoding.EncodeToString(keyShareBytes)
-			keyMetaB64 := base64.StdEncoding.EncodeToString(keyMetaBytes)
-			serverConfig.Keys = append(serverConfig.Keys, &config.KeyConfig{
-				ID:          key.ID,
-				KeyMetaInfo: keyMetaB64,
-				KeyShare:    keyShareB64,
-			})
+
+		serverConfig.RSA.Keys, err = saveRSAKeys(client.rsa.keys)
+		if err != nil {
+			return err
 		}
+		serverConfig.ECDSA.Keys, err = saveECDSAKeys(client.ecdsa.keys)
+		if err != nil {
+			return err
+		}
+
 	}
 	viper.Set("config", node.config)
 	return viper.WriteConfig()
 }
 
-// Listen starts all the server listening subroutines, and waits for a message received in the input socket. It checks and parses the messages to Message objects and sends them to a channel, that is used by the subroutines.
+// Listen starts all the server listening subroutines, and waits for a message received in the input socket. It checks and parses the message to Message objects and sends them to a channel, that is used by the subroutines.
 func (node *Node) Listen() {
 	for _, client := range node.clients {
 		client.Listen()

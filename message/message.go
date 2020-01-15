@@ -8,7 +8,7 @@ import (
 type Message struct {
 	NodeID string    // Identification for the sender node. It usually is the public key of the node.
 	ID     string    // Random hex ID for the message. Useful to do follow ups
-	Type   Type      // Type of the message.
+	Type   Type  // Type of the message.
 	Error  NodeError // An error code. It is 0 if the message is ok.
 	Data   [][]byte  // A list of byte arrays with the binary data of the message.
 }
@@ -73,8 +73,12 @@ func (message *Message) CopyWithoutData(ourID string, status NodeError) *Message
 	}
 }
 
+func (message *Message) ValidDataLen() bool {
+	return len(message.Data) == message.Type.DataLen()
+}
+
 // Ok returns true if a response matches with the message that generated it. It also checks for the length of data fields on the message. If it is less than the minDataLen argument, it returns an error.
-func (message *Message) Ok(message2 *Message, minDataLen int) error {
+func (message *Message) Ok(message2 *Message) error {
 	if message.ID != message2.ID {
 		return fmt.Errorf("ID mismatch: got: %s, expected: %s", message.ID, message2.ID)
 	}
@@ -85,6 +89,7 @@ func (message *Message) Ok(message2 *Message, minDataLen int) error {
 	if message.Error != Ok {
 		return fmt.Errorf("response has error: %s", message.Error.Error())
 	}
+	minDataLen := message.Type.DataLen()
 	if len(message.Data) < minDataLen {
 		return fmt.Errorf("data length mismatch: got: %d, expected at least: %d", len(message.Data), minDataLen)
 	}

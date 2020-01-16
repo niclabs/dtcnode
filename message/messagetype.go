@@ -13,7 +13,7 @@ const (
 	ECDSARound1
 	ECDSARound2
 	ECDSARound3
-	ECDSAGetSIgnature
+	ECDSAGetSignature
 	DeleteECDSAKeyShare
 	RestartECDSASession
 )
@@ -29,7 +29,7 @@ var TypeToString = map[Type]string{
 	ECDSARound1:         "ECDSA Round 1",
 	ECDSARound2:         "ECDSA Round 2",
 	ECDSARound3:         "ECDSA Round 3",
-	ECDSAGetSIgnature:   "ECDSA Get Signature",
+	ECDSAGetSignature:   "ECDSA Get Signature",
 	DeleteECDSAKeyShare: "ECDSA Delete Key Share",
 	RestartECDSASession: "ECDSA Reset Session",
 }
@@ -44,7 +44,7 @@ var TypeToDataLength = map[Type]int {
 	ECDSARound1:         2, // keyID, hash -> Round1Message
 	ECDSARound2:         2, // keyID, Round1MessageList -> Round2Message
 	ECDSARound3:         2, // keyID, Round2MessageList -> Round3Message
-	ECDSAGetSIgnature:   2, // keyID, Round3MessageList -> r, s
+	ECDSAGetSignature:   2, // keyID, Round3MessageList -> r, s
 	DeleteECDSAKeyShare: 1, // keyID
 	RestartECDSASession: 0, // Nothing, because there is one signing session at a time.
 }

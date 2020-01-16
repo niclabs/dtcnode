@@ -151,7 +151,7 @@ func (client *Client) dispatchECDSA(msg *message.Message) *message.Message {
 			break
 		}
 		resp.AddMessage(encoded)
-	case message.ECDSAGetSIgnature:
+	case message.ECDSAGetSignature:
 		keyID := string(msg.Data[0])
 		if client.ecdsa.currentKey != keyID {
 			resp.Error = message.InternalError

@@ -86,9 +86,9 @@ func (client *Client) dispatchECDSA(msg *message.Message) *message.Message {
 			resp.Error = message.KeyNotFoundError
 			break
 		}
-		doc := msg.Data[1]
+		h := msg.Data[1]
 		log.Printf("Starting Round1 in signing document with key %s as asked by client %s", keyID, client.GetConnString())
-		session, _, err := key.Share.NewSigSession(key.Meta, doc)
+		session, err := key.Share.NewSigSession(key.Meta, h)
 		if err != nil {
 			resp.Error = message.InternalError
 			break

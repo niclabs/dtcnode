@@ -24,7 +24,7 @@ type ecdsaKey struct {
 }
 
 func (client *Client) dispatchECDSA(msg *message.Message) *message.Message {
-	resp := msg.CopyWithoutData(client.node.GetID(), message.Ok)
+	resp := msg.NewResponse(client.node.GetID(), message.Ok)
 	switch msg.Type {
 	case message.SendECDSAKeyShare:
 		keyID := string(msg.Data[0])
@@ -67,10 +67,7 @@ func (client *Client) dispatchECDSA(msg *message.Message) *message.Message {
 		}
 		key, ok := client.ecdsa.keys[keyID]
 		if !ok {
-			log.Printf("error finding ECDSA key with id: %s. Keys available:", keyID)
-			for k, _ := range client.ecdsa.keys {
-				log.Printf("%s", k)
-			}
+			log.Printf("error finding ECDSA key with id: %s", keyID)
 			resp.Error = message.KeyNotFoundError
 			break
 		}

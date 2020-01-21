@@ -6,38 +6,41 @@ import (
 
 // Message represents a generic message which is sent between server and nodes.
 type Message struct {
-	NodeID string    // Identification for the sender node. It usually is the public key of the node.
-	ID     string    // Random hex ID for the message. Useful to do follow ups
-	Type   Type  // Type of the message.
-	Error  NodeError // An error code. It is 0 if the message is ok.
-	Data   [][]byte  // A list of byte arrays with the binary data of the message.
+	From       string    // Identification for the sender node.
+	ResponseOf string    // Identification for the original "from" field if the message is a response.
+	ID         string    // Random hex ID for the message. Useful to do follow ups
+	Type       Type      // Type of the message.
+	Error      NodeError // An error code. It is 0 if the message is ok.
+	Data       [][]byte  // A list of byte arrays with the binary data of the message.
 }
 
 // FromBytes transforms a raw array of array of bytes into a message, or returns an error if it can't transform the message.
 func FromBytes(rawMsg [][]byte) (*Message, error) {
-	if len(rawMsg) < 4 { // header is dealer ID, rest is message struct.
+	if len(rawMsg) < 5 { // header is dealer ID, rest is message struct.
 		return nil, fmt.Errorf("bad byte array length: %d instead of 4", len(rawMsg))
 	}
 	return &Message{
-		NodeID: string(rawMsg[0]), // Provided by
-		ID:     string(rawMsg[1]),
-		Type:   Type(rawMsg[2][0]),
-		Error:  NodeError(rawMsg[3][0]),
-		Data:   rawMsg[4:],
+		From:  string(rawMsg[0]),
+		ResponseOf: string(rawMsg[1]),
+		ID:    string(rawMsg[2]),
+		Type:  Type(rawMsg[3][0]),
+		Error: NodeError(rawMsg[4][0]),
+		Data:  rawMsg[5:],
 	}, nil
 }
 
-// NewMessage creates a new message using the arguments provided, or returns an error if it cannot create the message object (related currently to a problem in the generation of message IDs)
-func NewMessage(rType Type, nodeID string, msgs ...[]byte) (*Message, error) {
+// NewMessage creates a new message using the arguments provided, or returns an error if it cannot create the message object
+//(related currently to a problem in the generation of message IDs)
+func NewMessage(rType Type, from string, msgs ...[]byte) (*Message, error) {
 	id, err := GetRandomHexString(6)
 	if err != nil {
 		return nil, err
 	}
 	req := &Message{
-		NodeID: nodeID,
-		ID:     id,
-		Type:   rType,
-		Data:   make([][]byte, 0),
+		From: from,
+		ID:   id,
+		Type: rType,
+		Data: make([][]byte, 0),
 	}
 	req.Data = append(req.Data, msgs...)
 	return req, nil
@@ -46,7 +49,8 @@ func NewMessage(rType Type, nodeID string, msgs ...[]byte) (*Message, error) {
 // GetBytesLists transforms a message into an array of arrays of bytes, useful to send the message to the other end.
 func (message *Message) GetBytesLists() []interface{} {
 	b := []interface{}{
-		[]byte(message.NodeID),
+		[]byte(message.From),
+		[]byte(message.ResponseOf),
 		[]byte(message.ID),
 		[]byte{byte(message.Type)},
 		[]byte{byte(message.Error)},
@@ -62,14 +66,15 @@ func (message *Message) AddMessage(data []byte) {
 	message.Data = append(message.Data, data)
 }
 
-// CopyWithoutData creates a new message with some fields copied from another message. This method is useful to create replies quickly. It receives a default status code as argument and the new Node ID.
-func (message *Message) CopyWithoutData(ourID string, status NodeError) *Message {
+// NewResponse creates a new message with some fields copied from another message. This method is useful to create replies quickly. It receives a default status code as argument and the new Node ID.
+func (message *Message) NewResponse(ourID string, status NodeError) *Message {
 	return &Message{
-		NodeID: ourID,
-		ID:     message.ID,
-		Type:   message.Type,
-		Error:  status,
-		Data:   make([][]byte, 0),
+		From:       ourID,
+		ResponseOf: message.From,
+		ID:         message.ID,
+		Type:       message.Type,
+		Error:      status,
+		Data:       make([][]byte, 0),
 	}
 }
 
@@ -88,7 +93,7 @@ func (message *Message) ResponseOK(message2 *Message) error {
 	if message.ID != message2.ID {
 		return fmt.Errorf("ID mismatch: got: %s, expected: %s", message.ID, message2.ID)
 	}
-	// Note: NodeID should not be the same as the response
+	// Note: From should not be the same as the response
 	if message.Type != message2.Type {
 		return fmt.Errorf("type mismatch: got: %s, expected: %s", message.Type, message2.Type)
 	}

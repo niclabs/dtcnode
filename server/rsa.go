@@ -23,7 +23,7 @@ type rsaKey struct {
 }
 
 func (client *Client) dispatchRSA(msg *message.Message) *message.Message {
-	resp := msg.CopyWithoutData(client.node.GetID(), message.Ok)
+	resp := msg.NewResponse(client.node.GetID(), message.Ok)
 	switch msg.Type {
 	case message.SendRSAKeyShare:
 		log.Printf("Client %s is sending us a new RSA KeyShare", client.GetConnString())

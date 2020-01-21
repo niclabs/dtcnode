@@ -67,7 +67,10 @@ func (client *Client) dispatchECDSA(msg *message.Message) *message.Message {
 		}
 		key, ok := client.ecdsa.keys[keyID]
 		if !ok {
-			log.Printf("error finding ECDSA key with id: %s", keyID)
+			log.Printf("error finding ECDSA key with id: %s. Keys available:", keyID)
+			for k, _ := range client.ecdsa.keys {
+				log.Printf("%s", k)
+			}
 			resp.Error = message.KeyNotFoundError
 			break
 		}
@@ -89,9 +92,10 @@ func (client *Client) dispatchECDSA(msg *message.Message) *message.Message {
 		keyID := string(msg.Data[0])
 		key, ok := client.ecdsa.keys[keyID]
 		if !ok {
-			log.Printf("error finding ECDSA Key with ID: %s", keyID)
-			resp.Error = message.KeyNotFoundError
-			break
+			log.Printf("error finding ECDSA key with id: %s. Keys available:", keyID)
+			for k, _ := range client.ecdsa.keys {
+				log.Printf("%s", k)
+			}
 		}
 		client.ecdsa.currentKey = keyID
 		h := msg.Data[1]

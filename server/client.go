@@ -44,7 +44,7 @@ func (client *Client) Listen() {
 			continue
 		}
 		var resp *message.Message
-		if !msg.ValidDataLen() {
+		if !msg.ValidClientDataLength() {
 			resp.Error = message.InvalidMessageError
 		} else {
 			if msg.Type.IsRSA() {

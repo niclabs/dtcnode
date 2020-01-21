@@ -73,12 +73,18 @@ func (message *Message) CopyWithoutData(ourID string, status NodeError) *Message
 	}
 }
 
-func (message *Message) ValidDataLen() bool {
-	return len(message.Data) == message.Type.DataLen()
+// ValidClientDataLength returns true if the number of data fields is equal to the expected in a message sent by the client.
+func (message *Message) ValidClientDataLength() bool {
+	return len(message.Data) == message.Type.ClientDataLength()
 }
 
-// Ok returns true if a response matches with the message that generated it. It also checks for the length of data fields on the message. If it is less than the minDataLen argument, it returns an error.
-func (message *Message) Ok(message2 *Message) error {
+// ValidNodeDataLength returns true if the number of data fields is equal to the expected in a message sent by the node.
+func (message *Message) ValidNodeDataLength() bool {
+	return len(message.Data) == message.Type.NodeDataLength()
+}
+
+// ResponseOK returns true if a response matches with the message that generated it. It also checks for the length of data fields on the message. If it is less than the minDataLen argument, it returns an error.
+func (message *Message) ResponseOK(message2 *Message) error {
 	if message.ID != message2.ID {
 		return fmt.Errorf("ID mismatch: got: %s, expected: %s", message.ID, message2.ID)
 	}
@@ -89,9 +95,8 @@ func (message *Message) Ok(message2 *Message) error {
 	if message.Error != Ok {
 		return fmt.Errorf("response has error: %s", message.Error.Error())
 	}
-	minDataLen := message.Type.DataLen()
-	if len(message.Data) != minDataLen {
-		return fmt.Errorf("data length mismatch: got: %d, expected at least: %d", len(message.Data), minDataLen)
+	if !message.ValidNodeDataLength() {
+		return fmt.Errorf("data length mismatch: got: %d, expected: %d", len(message.Data), message.Type.NodeDataLength())
 	}
 	return nil
 }

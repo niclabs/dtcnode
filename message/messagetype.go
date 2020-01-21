@@ -34,7 +34,7 @@ var TypeToString = map[Type]string{
 	RestartECDSASession: "ECDSA Reset Session",
 }
 
-var TypeToDataLength = map[Type]int {
+var TypeToClientDataLength = map[Type]int {
 	None:                0,
 	SendRSAKeyShare:     3, // keyID, keyShare, keyMeta
 	GetRSASigShare:      2, // keyID, hash
@@ -46,6 +46,21 @@ var TypeToDataLength = map[Type]int {
 	ECDSARound3:         1, // Round2MessageList -> Round3Message
 	ECDSAGetSignature:   1, // Round3MessageList -> r, s
 	DeleteECDSAKeyShare: 1, // keyID
+	RestartECDSASession: 0, // Nothing, because there is one signing session at a time.
+}
+
+var TypeToNodeDataLength = map[Type]int {
+	None:                0,
+	SendRSAKeyShare:     0, // keyID, keyShare, keyMeta
+	GetRSASigShare:      0, // keyID, hash
+	DeleteRSAKeyShare:   0, // keyID
+	SendECDSAKeyShare:   1, // keyID, keyShare, keyMeta -> InitKeyMessage
+	ECDSAInitKeys:       0, // keyID, InitKeyMessageList
+	ECDSARound1:         1, // keyID, hash -> Round1Message
+	ECDSARound2:         1, // Round1MessageList -> Round2Message
+	ECDSARound3:         1, // Round2MessageList -> Round3Message
+	ECDSAGetSignature:   1, // Round3MessageList -> (r, s)
+	DeleteECDSAKeyShare: 0, // keyID
 	RestartECDSASession: 0, // Nothing, because there is one signing session at a time.
 }
 
@@ -67,8 +82,15 @@ func (mType Type) IsECDSA() bool {
 	return mType >= SendECDSAKeyShare && mType <= RestartECDSASession
 }
 
-func (mType Type) DataLen() int {
-	if length, ok := TypeToDataLength[mType]; ok {
+func (mType Type) ClientDataLength() int {
+	if length, ok := TypeToClientDataLength[mType]; ok {
+		return length
+	}
+	return 0
+}
+
+func (mType Type) NodeDataLength() int {
+	if length, ok := TypeToNodeDataLength[mType]; ok {
 		return length
 	}
 	return 0

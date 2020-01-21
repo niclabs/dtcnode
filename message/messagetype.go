@@ -42,9 +42,9 @@ var TypeToDataLength = map[Type]int {
 	SendECDSAKeyShare:   3, // keyID, keyShare, keyMeta -> InitKeyMessage
 	ECDSAInitKeys:       2, // keyID, InitKeyMessageList
 	ECDSARound1:         2, // keyID, hash -> Round1Message
-	ECDSARound2:         2, // keyID, Round1MessageList -> Round2Message
-	ECDSARound3:         2, // keyID, Round2MessageList -> Round3Message
-	ECDSAGetSignature:   2, // keyID, Round3MessageList -> r, s
+	ECDSARound2:         1, // Round1MessageList -> Round2Message
+	ECDSARound3:         1, // Round2MessageList -> Round3Message
+	ECDSAGetSignature:   1, // Round3MessageList -> r, s
 	DeleteECDSAKeyShare: 1, // keyID
 	RestartECDSASession: 0, // Nothing, because there is one signing session at a time.
 }

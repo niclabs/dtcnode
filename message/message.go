@@ -90,7 +90,7 @@ func (message *Message) Ok(message2 *Message) error {
 		return fmt.Errorf("response has error: %s", message.Error.Error())
 	}
 	minDataLen := message.Type.DataLen()
-	if len(message.Data) < minDataLen {
+	if len(message.Data) != minDataLen {
 		return fmt.Errorf("data length mismatch: got: %d, expected at least: %d", len(message.Data), minDataLen)
 	}
 	return nil

@@ -31,17 +31,20 @@ func (client *Client) dispatchECDSA(msg *message.Message) *message.Message {
 		log.Printf("Client %s is sending us a new incomplete ECDSA KeyShare with id=%s", client.GetConnString(), keyID)
 		keyShare, err := message.DecodeECDSAKeyShare(msg.Data[1])
 		if err != nil {
+			log.Printf("error decoding ECDSA KeyShare message: %s", err)
 			resp.Error = message.DecodingError
 			break
 		}
 		keyMeta, err := message.DecodeECDSAKeyMeta(msg.Data[2])
 		if err != nil {
+			log.Printf("error decoding ECDSA KeyMeta message: %s", err)
 			resp.Error = message.DecodingError
 			break
 		}
 		keyInitMsg, err := keyShare.Init(keyMeta)
 		encodedKeyInit, err := message.EncodeECDSAKeyInitMessage(keyInitMsg)
 		if err != nil {
+			log.Printf("error encoding ECDSA KeyInit message: %s", err)
 			resp.Error = message.EncodingError
 			break
 		}
@@ -58,16 +61,19 @@ func (client *Client) dispatchECDSA(msg *message.Message) *message.Message {
 		log.Printf("Client %s is sending us key init params for key %s", client.GetConnString(), keyID)
 		keyInitMessages, err := message.DecodeECDSAKeyInitMessageList(msg.Data[1])
 		if err != nil {
+			log.Printf("error decoding ECDSA KeyInit message list: %s", err)
 			resp.Error = message.DecodingError
 			break
 		}
 		key, ok := client.ecdsa.keys[keyID]
 		if !ok {
+			log.Printf("error finding ECDSA key with id: %s", keyID)
 			resp.Error = message.KeyNotFoundError
 			break
 		}
 		err = key.Share.SetKey(key.Meta, keyInitMessages)
 		if err != nil {
+			log.Printf("error setting ECDSA Key: %s", err)
 			resp.Error = message.InternalError
 			break
 		}
@@ -83,9 +89,11 @@ func (client *Client) dispatchECDSA(msg *message.Message) *message.Message {
 		keyID := string(msg.Data[0])
 		key, ok := client.ecdsa.keys[keyID]
 		if !ok {
+			log.Printf("error finding ECDSA Key with ID: %s", keyID)
 			resp.Error = message.KeyNotFoundError
 			break
 		}
+		client.ecdsa.currentKey = keyID
 		h := msg.Data[1]
 		log.Printf("Starting Round1 in signing document with key %s as asked by client %s", keyID, client.GetConnString())
 		session, err := key.Share.NewSigSession(key.Meta, h)
@@ -96,80 +104,94 @@ func (client *Client) dispatchECDSA(msg *message.Message) *message.Message {
 		client.ecdsa.currentSession = session
 		round1Msg, err := session.Round1()
 		if err != nil {
+			log.Printf("cannot execute round 1: %s", err)
 			resp.Error = message.InternalError
 			break
 		}
 		encoded, err := message.EncodeECDSARound1Message(round1Msg)
 		if err != nil {
+			log.Printf("cannot encode ECDSA round 1 message: %s", err)
 			resp.Error = message.EncodingError
 			break
 		}
 		resp.AddMessage(encoded)
 	case message.ECDSARound2:
-		keyID := string(msg.Data[0])
-		if client.ecdsa.currentKey != keyID {
+		keyID := client.ecdsa.currentKey
+		if keyID == "" {
+			log.Printf("Error: currentKey is not set %s", keyID)
 			resp.Error = message.InternalError
 			break
 		}
 		log.Printf("Starting Round2 in signing document with key %s as asked by client %s", keyID, client.GetConnString())
-		round1Messages, err := message.DecodeECDSARound1MessageList(msg.Data[1])
+		round1Messages, err := message.DecodeECDSARound1MessageList(msg.Data[0])
 		if err != nil {
+			log.Printf("cannot decode ECDSA round 1 message list: %s", err)
 			resp.Error = message.DecodingError
 			break
 		}
 		round2Msg, err := client.ecdsa.currentSession.Round2(round1Messages)
 		if err != nil {
+			log.Printf("cannot execute round 2: %s", err)
 			resp.Error = message.InternalError
 			break
 		}
 		encoded, err := message.EncodeECDSARound2Message(round2Msg)
 		if err != nil {
+			log.Printf("cannot encode ECDSA round 2 message: %s", err)
 			resp.Error = message.EncodingError
 			break
 		}
 		resp.AddMessage(encoded)
 	case message.ECDSARound3:
-		keyID := string(msg.Data[0])
-		if client.ecdsa.currentKey != keyID {
+		keyID := client.ecdsa.currentKey
+		if keyID == "" {
+			log.Printf("Error: currentKey is not set %s", keyID)
 			resp.Error = message.InternalError
 			break
 		}
-		log.Printf("Starting Round3 in signing document with key %s as asked by client %s", keyID, client.GetConnString())
-		round2Messages, err := message.DecodeECDSARound2MessageList(msg.Data[1])
+		log.Printf("Starting Round2 in signing document with key %s as asked by client %s", keyID, client.GetConnString())
+		round2Messages, err := message.DecodeECDSARound2MessageList(msg.Data[0])
 		if err != nil {
+			log.Printf("cannot decode ECDSA round 2 message List: %s", err)
 			resp.Error = message.DecodingError
 			break
 		}
 		round3Msg, err := client.ecdsa.currentSession.Round3(round2Messages)
 		if err != nil {
+			log.Printf("cannot execute round 3: %s", err)
 			resp.Error = message.InternalError
 			break
 		}
 		encoded, err := message.EncodeECDSARound3Message(round3Msg)
 		if err != nil {
+			log.Printf("cannot encode ECDSA round 3 message: %s", err)
 			resp.Error = message.EncodingError
 			break
 		}
 		resp.AddMessage(encoded)
 	case message.ECDSAGetSignature:
-		keyID := string(msg.Data[0])
-		if client.ecdsa.currentKey != keyID {
+		keyID := client.ecdsa.currentKey
+		if keyID == "" {
+			log.Printf("Error: currentKey is not set %s", keyID)
 			resp.Error = message.InternalError
 			break
 		}
 		log.Printf("Starting Round3 in signing document with key %s as asked by client %s", keyID, client.GetConnString())
-		round3Messages, err := message.DecodeECDSARound3MessageList(msg.Data[1])
+		round3Messages, err := message.DecodeECDSARound3MessageList(msg.Data[0])
 		if err != nil {
+			log.Printf("cannot decode ECDSA round 3 message list: %s", err)
 			resp.Error = message.DecodingError
 			break
 		}
 		r, s, err := client.ecdsa.currentSession.GetSignature(round3Messages)
 		if err != nil {
+			log.Printf("error getting signature: %s", err)
 			resp.Error = message.InternalError
 			break
 		}
 		encoded, err := message.EncodeECDSASignature(r, s)
 		if err != nil {
+			log.Printf("cannot encode ECDSA signature: %s", err)
 			resp.Error = message.EncodingError
 			break
 		}

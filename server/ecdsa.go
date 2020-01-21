@@ -28,7 +28,7 @@ func (client *Client) dispatchECDSA(msg *message.Message) *message.Message {
 	switch msg.Type {
 	case message.SendECDSAKeyShare:
 		keyID := string(msg.Data[0])
-		log.Printf("Client %s is sending us a new incomplete ECDSA KeyShare with id", client.GetConnString(), keyID)
+		log.Printf("Client %s is sending us a new incomplete ECDSA KeyShare with id=%s", client.GetConnString(), keyID)
 		keyShare, err := message.DecodeECDSAKeyShare(msg.Data[1])
 		if err != nil {
 			resp.Error = message.DecodingError

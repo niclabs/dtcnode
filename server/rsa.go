@@ -24,10 +24,6 @@ type rsaKey struct {
 
 func (client *Client) dispatchRSA(msg *message.Message) *message.Message {
 	resp := msg.CopyWithoutData(client.node.GetID(), message.Ok)
-	if !msg.ValidClientDataLength() {
-		resp.Error = message.MalformedMessageError
-		return msg
-	}
 	switch msg.Type {
 	case message.SendRSAKeyShare:
 		log.Printf("Client %s is sending us a new RSA KeyShare", client.GetConnString())

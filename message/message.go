@@ -17,7 +17,7 @@ type Message struct {
 // FromBytes transforms a raw array of array of bytes into a message, or returns an error if it can't transform the message.
 func FromBytes(rawMsg [][]byte) (*Message, error) {
 	if len(rawMsg) < 5 { // header is dealer ID, rest is message struct.
-		return nil, fmt.Errorf("bad byte array length: %d instead of 4", len(rawMsg))
+		return nil, fmt.Errorf("bad byte array length: %d instead of 5", len(rawMsg))
 	}
 	return &Message{
 		From:  string(rawMsg[0]),

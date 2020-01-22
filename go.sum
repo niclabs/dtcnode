@@ -60,6 +60,7 @@ github.com/mwitkow/go-conntrack v0.0.0-20161129095857-cc309e4a2223/go.mod h1:qRW
 github.com/niclabs/tcecdsa v0.0.5 h1:3bzFtmSkoggY8g3MAHROV/OOYTI64JS5AC2KgjQrllY=
 github.com/niclabs/tcecdsa v0.0.5/go.mod h1:pYnLtlVb0Rrbe2PEnDGkFLhWCldBGYZoOS8qifwQLho=
 github.com/niclabs/tcecdsa v0.0.6/go.mod h1:pYnLtlVb0Rrbe2PEnDGkFLhWCldBGYZoOS8qifwQLho=
+github.com/niclabs/tcecdsa v0.0.7/go.mod h1:pYnLtlVb0Rrbe2PEnDGkFLhWCldBGYZoOS8qifwQLho=
 github.com/niclabs/tcpaillier v0.0.7 h1:ArGRwPW6bAhMhBK7L5L1MDRQWLztO2RK8z030XOaKeY=
 github.com/niclabs/tcpaillier v0.0.7/go.mod h1:PnZgJxcHZFSuXo6oSK6kMABkChr9URTmmGLNjgjkbNs=
 github.com/niclabs/tcrsa v0.0.4 h1:0UG7xVEFE7TV+epTrwGxMrMX0+9PHLT4kbBut4J//bk=

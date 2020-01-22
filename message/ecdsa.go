@@ -31,7 +31,6 @@ func EncodeECDSAKeyMeta(meta *tcecdsa.KeyMeta) ([]byte, error) {
 	return buffer.Bytes(), nil
 }
 
-
 // EncodeECDSAKeyInitMessage encodes a KeyInitMessage struct into an array of bytes, using the golang gob encoder. It returns an error if it cannot encode the struct.
 func EncodeECDSAKeyInitMessage(share *tcecdsa.KeyInitMessage) ([]byte, error) {
 	var buffer bytes.Buffer
@@ -132,7 +131,6 @@ func DecodeECDSAKeyShare(byteShare []byte) (*tcecdsa.KeyShare, error) {
 	}
 	return keyShare, nil
 }
-
 
 // DecodeECDSAKeyMeta decodes an array of bytes into a keymeta struct, using the golang gob decode. It returns an error if it cannot decode the struct.
 func DecodeECDSAKeyMeta(byteShare []byte) (*tcecdsa.KeyMeta, error) {
@@ -243,4 +241,3 @@ func DecodeECDSASignature(byteShare []byte) (*big.Int, *big.Int, error) {
 	}
 	return sig.R, sig.S, nil
 }
-

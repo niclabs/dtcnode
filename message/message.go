@@ -20,12 +20,12 @@ func FromBytes(rawMsg [][]byte) (*Message, error) {
 		return nil, fmt.Errorf("bad byte array length: %d instead of 5", len(rawMsg))
 	}
 	return &Message{
-		From:  string(rawMsg[0]),
+		From:       string(rawMsg[0]),
 		ResponseOf: string(rawMsg[1]),
-		ID:    string(rawMsg[2]),
-		Type:  Type(rawMsg[3][0]),
-		Error: NodeError(rawMsg[4][0]),
-		Data:  rawMsg[5:],
+		ID:         string(rawMsg[2]),
+		Type:       Type(rawMsg[3][0]),
+		Error:      NodeError(rawMsg[4][0]),
+		Data:       rawMsg[5:],
 	}, nil
 }
 

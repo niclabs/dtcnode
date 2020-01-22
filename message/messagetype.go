@@ -32,7 +32,7 @@ var TypeToString = map[Type]string{
 	DeleteECDSAKeyShare: "ECDSA Delete Key Share",
 }
 
-var TypeToClientDataLength = map[Type]int {
+var TypeToClientDataLength = map[Type]int{
 	None:                0,
 	SendRSAKeyShare:     3, // keyID, keyShare, keyMeta -> {}
 	GetRSASigShare:      2, // keyID, hash -> sigShare
@@ -46,7 +46,7 @@ var TypeToClientDataLength = map[Type]int {
 	DeleteECDSAKeyShare: 1, // keyID -> {}
 }
 
-var TypeToNodeDataLength = map[Type]int {
+var TypeToNodeDataLength = map[Type]int{
 	None:                0,
 	SendRSAKeyShare:     0, // keyID, keyShare, keyMeta -> {}
 	GetRSASigShare:      1, // keyID, hash -> sigShare

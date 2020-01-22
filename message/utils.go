@@ -15,4 +15,3 @@ func GetRandomHexString(len int) (string, error) {
 	}
 	return fmt.Sprintf("%x", b), nil
 }
-

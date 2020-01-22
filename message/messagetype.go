@@ -15,7 +15,6 @@ const (
 	ECDSARound3
 	ECDSAGetSignature
 	DeleteECDSAKeyShare
-	RestartECDSASession
 )
 
 // TypeToString transforms a message type into a string. Useful for debugging.
@@ -31,7 +30,6 @@ var TypeToString = map[Type]string{
 	ECDSARound3:         "ECDSA Round 3",
 	ECDSAGetSignature:   "ECDSA Get Signature",
 	DeleteECDSAKeyShare: "ECDSA Delete Key Share",
-	RestartECDSASession: "ECDSA Reset Session",
 }
 
 var TypeToClientDataLength = map[Type]int {
@@ -46,7 +44,6 @@ var TypeToClientDataLength = map[Type]int {
 	ECDSARound3:         1, // Round2MessageList -> Round3Message
 	ECDSAGetSignature:   1, // Round3MessageList -> r, s
 	DeleteECDSAKeyShare: 1, // keyID -> {}
-	RestartECDSASession: 0, // {} -> {}
 }
 
 var TypeToNodeDataLength = map[Type]int {
@@ -61,7 +58,6 @@ var TypeToNodeDataLength = map[Type]int {
 	ECDSARound3:         1, // Round2MessageList -> Round3Message
 	ECDSAGetSignature:   1, // Round3MessageList -> (r, s)
 	DeleteECDSAKeyShare: 0, // keyID -> {}
-	RestartECDSASession: 0, // {} -> {}
 }
 
 func (mType Type) String() string {
@@ -79,7 +75,7 @@ func (mType Type) IsRSA() bool {
 
 // IsECDSA returns true if the message is of type ECDSA, and false if it is not.
 func (mType Type) IsECDSA() bool {
-	return mType >= SendECDSAKeyShare && mType <= RestartECDSASession
+	return mType >= SendECDSAKeyShare && mType <= DeleteECDSAKeyShare
 }
 
 func (mType Type) ClientDataLength() int {

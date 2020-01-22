@@ -207,11 +207,6 @@ func (client *Client) dispatchECDSA(msg *message.Message) *message.Message {
 			break
 		}
 		log.Printf("Keyshare deleted for keyid=%s", keyID)
-	case message.RestartECDSASession:
-		log.Printf("Client %s is asking us to restart its session", client.GetConnString())
-		client.ecdsa.currentSession = nil
-		client.ecdsa.currentKey = ""
-		log.Printf("Session restarted")
 	}
 	return resp
 }

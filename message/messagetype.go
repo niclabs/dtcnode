@@ -36,32 +36,32 @@ var TypeToString = map[Type]string{
 
 var TypeToClientDataLength = map[Type]int {
 	None:                0,
-	SendRSAKeyShare:     3, // keyID, keyShare, keyMeta
-	GetRSASigShare:      2, // keyID, hash
-	DeleteRSAKeyShare:   1, // keyID
+	SendRSAKeyShare:     3, // keyID, keyShare, keyMeta -> {}
+	GetRSASigShare:      2, // keyID, hash -> sigShare
+	DeleteRSAKeyShare:   1, // keyID -> {}
 	SendECDSAKeyShare:   3, // keyID, keyShare, keyMeta -> InitKeyMessage
-	ECDSAInitKeys:       2, // keyID, InitKeyMessageList
+	ECDSAInitKeys:       2, // keyID, InitKeyMessageList -> {}
 	ECDSARound1:         2, // keyID, hash -> Round1Message
 	ECDSARound2:         1, // Round1MessageList -> Round2Message
 	ECDSARound3:         1, // Round2MessageList -> Round3Message
 	ECDSAGetSignature:   1, // Round3MessageList -> r, s
-	DeleteECDSAKeyShare: 1, // keyID
-	RestartECDSASession: 0, // Nothing, because there is one signing session at a time.
+	DeleteECDSAKeyShare: 1, // keyID -> {}
+	RestartECDSASession: 0, // {} -> {}
 }
 
 var TypeToNodeDataLength = map[Type]int {
 	None:                0,
-	SendRSAKeyShare:     0, // keyID, keyShare, keyMeta
-	GetRSASigShare:      0, // keyID, hash
-	DeleteRSAKeyShare:   0, // keyID
+	SendRSAKeyShare:     0, // keyID, keyShare, keyMeta -> {}
+	GetRSASigShare:      1, // keyID, hash -> sigShare
+	DeleteRSAKeyShare:   0, // keyID -> {}
 	SendECDSAKeyShare:   1, // keyID, keyShare, keyMeta -> InitKeyMessage
-	ECDSAInitKeys:       0, // keyID, InitKeyMessageList
+	ECDSAInitKeys:       0, // keyID, InitKeyMessageList -> {}
 	ECDSARound1:         1, // keyID, hash -> Round1Message
 	ECDSARound2:         1, // Round1MessageList -> Round2Message
 	ECDSARound3:         1, // Round2MessageList -> Round3Message
 	ECDSAGetSignature:   1, // Round3MessageList -> (r, s)
-	DeleteECDSAKeyShare: 0, // keyID
-	RestartECDSASession: 0, // Nothing, because there is one signing session at a time.
+	DeleteECDSAKeyShare: 0, // keyID -> {}
+	RestartECDSASession: 0, // {} -> {}
 }
 
 func (mType Type) String() string {

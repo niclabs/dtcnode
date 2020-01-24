@@ -107,6 +107,7 @@ func (client *Client) SaveRSAKey(id string, keyShare *tcrsa.KeyShare, keyMeta *t
 
 // SaveRSAKey deletes a key from the array of the server and asks the node to save the new key array into the config file.
 func (client *Client) DeleteRSAKey(id string) error {
+	log.Printf("deleting ecdsa key with id %s", id)
 	delete(client.rsa.keys, id)
 	return client.node.SaveConfigKeys()
 }

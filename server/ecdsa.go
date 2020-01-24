@@ -226,6 +226,7 @@ func (client *Client) SaveECDSAKey(id string, keyShare *tcecdsa.KeyShare, keyMet
 
 // SaveECDSAKey deletes a key from the array of the server and asks the node to save the new key array into the config file.
 func (client *Client) DeleteECDSAKey(id string) error {
+	log.Printf("deleting ecdsa key with id %s", id)
 	delete(client.ecdsa.keys, id)
 	return client.node.SaveConfigKeys()
 }

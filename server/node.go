@@ -144,7 +144,7 @@ func (node *Node) SaveConfigKeys() error {
 		if serverConfig == nil {
 			return fmt.Errorf("error encoding rsaKeys: client config not found")
 		}
-
+		log.Printf("saving %d rsa keys and %d ecdsa keys...", len(client.rsa.keys), len(client.ecdsa.keys))
 		serverConfig.RSA.Keys, err = saveRSAKeys(client.rsa.keys)
 		if err != nil {
 			return err

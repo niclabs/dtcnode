@@ -1,3 +1,4 @@
 .idea/
-config.yaml
+dtcnode-config.yaml
 dtcnode
+docker/config

@@ -15,7 +15,7 @@ func init() {
 var Log *log.Logger
 
 func main() {
-	viper.SetConfigName("config")
+	viper.SetConfigName("dtcnode-config")
 	viper.AddConfigPath("/etc/dtcnode/")
 	viper.AddConfigPath("./")
 	if err := viper.ReadInConfig(); err != nil {

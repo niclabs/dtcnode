@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -e
 cd "$(dirname $0)" || exit
-go run github.com/niclabs/dtcconfig rsa \
+go run github.com/niclabs/dtcconfig create \
   -n 0.0.0.0:9871,0.0.0.0:9873,0.0.0.0:9875,0.0.0.0:9877,0.0.0.0:9879 \
   -t 3 \
   -H "$(ip addr | grep 'global docker0' | awk '{print $2}' | sed sx/16xxg)" \

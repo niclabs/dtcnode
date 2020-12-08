@@ -2,9 +2,11 @@ package server
 
 import (
 	"fmt"
-	"github.com/niclabs/dtcnode/v3/message"
 	"log"
 	"net"
+
+	"github.com/niclabs/dtcnode/v3/message"
+	"github.com/pebbe/zmq4"
 )
 
 // Client represents the connection with the Distributed TCHSM server.
@@ -62,6 +64,12 @@ func (client *Client) Listen() {
 		log.Printf("sending response to client %s", client.GetConnString())
 		if _, err := client.node.socket.SendMessage(resp.GetBytesLists()...); err != nil {
 			log.Printf("%s", err.Error())
+			if n := zmq4.AsErrno(err); n == zmq4.EFSM {
+				client.node.connect()                                                              // Reconnecting (FSM was wating a reply that never came)
+				if _, err := client.node.socket.SendMessage(resp.GetBytesLists()...); err != nil { // if fails, nothing to do
+					log.Printf("Error: %s", n.Error())
+				}
+			}
 		}
 		log.Printf("A response to client %s was sent", client.GetConnString())
 	}

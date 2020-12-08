@@ -2,13 +2,14 @@ package server
 
 import (
 	"fmt"
+	"log"
+	"net"
+	"sync"
+
 	"github.com/niclabs/dtcnode/v3/config"
 	"github.com/niclabs/dtcnode/v3/message"
 	"github.com/pebbe/zmq4"
 	"github.com/spf13/viper"
-	"log"
-	"net"
-	"sync"
 )
 
 // The domain of the ZMQ connection. This value must be the same in the server, or it will not work.
@@ -68,22 +69,7 @@ func InitNode(config *config.Config) (*Node, error) {
 	zmq4.AuthAllow(TchsmDomain, ips...)
 	zmq4.AuthCurveAdd(TchsmDomain, config.GetClientPubKeys()...)
 
-	s, err := context.NewSocket(zmq4.REP)
-	if err != nil {
-		return nil, err
-	}
-	node.socket = s
-
-	if err := node.socket.SetIdentity(node.GetID()); err != nil {
-		return nil, err
-	}
-
-	if err := node.socket.ServerAuthCurve(TchsmDomain, node.privKey); err != nil {
-		return nil, err
-	}
-
-	log.Printf("Listening message in %s", node.GetConnString())
-	if err := node.socket.Bind(node.GetConnString()); err != nil {
+	if err := node.connect(); err != nil {
 		return nil, err
 	}
 
@@ -165,4 +151,27 @@ func (node *Node) Listen() {
 		client.Listen()
 	}
 	select {}
+}
+
+func (node *Node) connect() error {
+
+	s, err := node.context.NewSocket(zmq4.REP)
+	if err != nil {
+		return err
+	}
+	node.socket = s
+
+	if err := node.socket.SetIdentity(node.GetID()); err != nil {
+		return err
+	}
+
+	if err := node.socket.ServerAuthCurve(TchsmDomain, node.privKey); err != nil {
+		return err
+	}
+
+	log.Printf("Listening message in %s", node.GetConnString())
+	if err := node.socket.Bind(node.GetConnString()); err != nil {
+		return err
+	}
+	return nil
 }

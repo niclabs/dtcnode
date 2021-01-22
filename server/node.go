@@ -160,7 +160,7 @@ func (node *Node) connect() error {
 		return err
 	}
 	node.socket = s
-
+	node.socket.SetIpv6(true)
 	if err := node.socket.SetIdentity(node.GetID()); err != nil {
 		return err
 	}
